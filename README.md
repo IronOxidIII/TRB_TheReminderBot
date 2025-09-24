@@ -9,7 +9,7 @@ Here's features of this bot:
 4) Sync with Google Calendar (in development).
 
 Done with:  
-- DataBase (in development)
+- DataBase (in development, maybe MySQL)
 - Google API (in development)
 - Telegram Bot API (also in development)
 - Java (at last in development)
