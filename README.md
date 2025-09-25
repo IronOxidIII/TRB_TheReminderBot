@@ -1,6 +1,6 @@
 # TRB_TheReminderBot
 Hello there. This is TheReminderBot - project for OOP course, Ural Federal University.  
-Done by: ..., ..., Salamakhin Kirill.
+Done by: Kroshakov Danil, Sesekin Andrey, Salamakhin Kirill.
 
 Here's features of this bot:
 1) Add your note to keep it safe for yourself.
