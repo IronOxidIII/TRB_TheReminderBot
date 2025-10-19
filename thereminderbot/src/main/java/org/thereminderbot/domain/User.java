@@ -1,74 +1,98 @@
 package org.thereminderbot.domain;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
+/**
+ * Доменный класс пользователя.
+ */
 public class User {
-    private String name;
-    private List<Note> notes;
+    /**
+     * Уникальный идентификатор пользователя.
+     */
+    private long userId;
 
-    public User() {
+    /**
+     * Имя пользователя.
+     */
+    private String userName;
 
+    /**
+     * Отличие часового пояса пользователя относительно +0.
+     */
+    private int timeZoneOffset;
+
+    /**
+     * Меню, в котором находится пользователь.
+     * @see org.thereminderbot.enums.UserMenu
+     */
+    private int currentMenuId;
+
+    public User(long userId, String userName, int timeZoneOffset, int currentMenuId) {
+        this.userId = userId;
+        this.userName = userName;
+        this.timeZoneOffset = timeZoneOffset;
+        this.currentMenuId = currentMenuId;
     }
 
-    public User(String name) {
-        this.name = name;
-        notes = new ArrayList<Note>();
+    /**
+     * Получить id пользователя.
+     * @return Число - id пользователя.
+     */
+    public long getUserId() {
+        return userId;
     }
 
-    public void setName(String name) {
-        if (name.isEmpty() || name == null)
-            throw new IllegalArgumentException("Имя должно содержать хотя бы один символ.");
-
-        this.name = name;
+    /**
+     * Назначить новое id пользователю.
+     * @param userId Число - новое id пользователя.
+     */
+    public void setUserId(long userId) {
+        this.userId = userId;
     }
 
-    public String getName() {
-        return new String(name);
+    /**
+     * Получить имя пользователя.
+     * @return Строка - имя пользователя.
+     */
+    public String getUserName() {
+        return userName;
     }
 
-    public ArrayList<Note> getNotes() {
-        return new ArrayList<>(notes);
+    /**
+     * Назначить новое имя пользователю.
+     * @param userName Строка - новое имя пользователя.
+     */
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
-    public Note findNoteByText(String text) {
-        if (text == null) {
-            throw new IllegalArgumentException("Text не может быть null");
-        }
-
-        for (var note : notes) {
-            if (note.getText().equals(text)) {
-                return note;
-            }
-        }
-
-        // Не нашли запись с таким текстом.
-        return null;
+    /**
+     * Получить отличие часового пояса пользователя относительно +0.
+     * @return Число - отличие часового пояса пользователя от +0.
+     */
+    public int getTimeZoneOffset() {
+        return timeZoneOffset;
     }
 
-    public Note addNote(Note note) {
-        if (note == null)
-            throw new IllegalArgumentException("Напоминание не может быть null.");
-
-        if (notes.contains(note))
-            throw new IllegalArgumentException("У пользователя уже есть такое напоминание.");
-
-        var noteToAdd = new Note(note);
-        notes.add(noteToAdd);
-
-        return noteToAdd;
+    /**
+     * Назначить новое отличие часового пояса пользователя относительно +0.
+     * @param timeZoneOffset Число - новок отличие часового пояса пользователя от +0.
+     */
+    public void setTimeZoneOffset(int timeZoneOffset) {
+        this.timeZoneOffset = timeZoneOffset;
     }
 
-    @Override
-    public String toString() {
-        var notesStringBulider = new StringBuilder();
+    /**
+     * Получить id меню пользователя по {@link org.thereminderbot.enums.UserMenu}.
+     * @return Число - id меню пользователя.
+     */
+    public int getCurrentMenuId() {
+        return currentMenuId;
+    }
 
-        for (var note : notes) {
-            notesStringBulider.append(note.getText());
-            notesStringBulider.append(" ");
-        }
-
-        return String.format("Name = %s, Notes = [%s]", name, notesStringBulider.toString());
+    /**
+     * Назначить новое меню пользователю по {@link org.thereminderbot.enums.UserMenu}.
+     * @param menuId Число - новое id меню пользователя.
+     */
+    public void setCurrentMenuId(int menuId) {
+        this.currentMenuId = menuId;
     }
 }
