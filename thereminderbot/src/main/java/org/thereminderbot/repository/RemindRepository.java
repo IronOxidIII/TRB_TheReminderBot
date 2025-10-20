@@ -16,7 +16,7 @@ public class RemindRepository {
         return;
     }
 
-    public ArrayList<Remind> getRemindsById(long id) {
+    public ArrayList<Remind> getRemindById(long id) {
         //TODO
         return null;
     }

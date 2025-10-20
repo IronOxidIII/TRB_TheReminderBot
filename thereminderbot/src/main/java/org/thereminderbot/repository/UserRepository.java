@@ -25,4 +25,10 @@ public class UserRepository {
         //TODO
         return;
     }
+
+    public void deleteUser(long id) {
+        //TODO
+        // Прошу обратить внимание, при удалении пользователя нам нужно удалить все его заметки.
+        return;
+    }
 }
