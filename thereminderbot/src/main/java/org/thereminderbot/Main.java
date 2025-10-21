@@ -1,43 +1,89 @@
 package org.thereminderbot;
 
-import org.thereminderbot.domain.Note;
+import org.thereminderbot.domain.Remind;
 import org.thereminderbot.domain.User;
+import org.thereminderbot.enums.UserMenu;
+import org.thereminderbot.repository.RemindRepository;
 import org.thereminderbot.repository.UserRepository;
-import org.thereminderbot.service.ReminderSpaceService;
+import org.thereminderbot.service.RemindService;
+import org.thereminderbot.service.UserService;
+
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 
 public class Main {
     public static void main(String[] args) {
         var userRepository = new UserRepository();
+        var remindRepository = new RemindRepository();
 
-        var user1 = new User("Антон");
-        var user2 = new User("Боупо");
+        var user1 = new User(1, "Vasya", 5, UserMenu.MainPage.ordinal());
+        var user2 = new User(2, "Misha", 3, UserMenu.MainPage.ordinal());
 
-        userRepository.loginUser(user1);
-        userRepository.loginUser(user2);
+        var remind1 = new Remind(
+                1,
+                "Switch light off",
+                user1.getUserId(),
+                OffsetDateTime.now(),
+                LocalTime.of(10, 30));
 
-        var reminderSpaceService = new ReminderSpaceService(userRepository);
+        var remind2 = new Remind(2,
+                "Switch oven off",
+                user1.getUserId(),
+                OffsetDateTime.now(),
+                LocalTime.of(1, 0));
 
-        var note1 = new Note("Покормить собаку.");
-        var note2 = new Note("Выспаться перед работой(.");
-        var note3 = new Note("Покормить мою кошку.");
+        var remind3 = new Remind(2,
+                "Walkout dog",
+                user2.getUserId(),
+                OffsetDateTime.now(),
+                LocalTime.of(4, 30));
 
-        reminderSpaceService.addNote(user1, note1);
-        reminderSpaceService.addNote(user1, note2);
-        reminderSpaceService.addNote(user2, note3);
+        var remind4 = new Remind(2,
+                "Walkout cat",
+                user2.getUserId(),
+                OffsetDateTime.now(),
+                LocalTime.of(23, 0));
 
-        reminderSpaceService.shareNotes(user2, user1);
+        remindRepository.addRemind(remind1);
+        remindRepository.addRemind(remind2);
+        remindRepository.addRemind(remind3);
+        remindRepository.addRemind(remind4);
 
-        System.out.println(user1);
-        System.out.println(user2);
+        userRepository.addUser(user1);
+        userRepository.addUser(user2);
 
-        userRepository.
-                findUserByName("Антон").
-                findNoteByText("Покормить мою кошку.").
-                setText("Другое напоминание.");
+        var userService = new UserService();
+        var remindService = new RemindService();
 
-        System.out.println("----------------");
+        System.out.println("Заметки первого пользователя:");
+        userService.printUsersReminds(user1.getUserId());
 
-        System.out.println(user1);
-        System.out.println(user2);
+        System.out.println("Заметки второго пользователя: \n");
+        userService.printUsersReminds(user2.getUserId());
+
+        System.out.println("Пользователю один должно придти уведомление о напоминании(вывести в консоль)");
+        userService.notifyUser(user1.getUserId(), remind1.getId());
+
+        System.out.println("Пользователь два переходит в меню настройки");
+        userService.turnOnMenu(user2.getUserId(), UserMenu.RemindCreate);
+        userService.printUserInfo(user2.getUserId());
+
+        System.out.println("Пользователи один делится напоминаниями с пользователем два");
+        userService.shareReminds(user1.getUserId(), user2.getUserId());
+        userService.printUsersReminds(user1.getUserId());
+        userService.printUsersReminds(user2.getUserId());
+
+        System.out.println("Выводим все напоминания:");
+        remindService.printAllReminds();
+
+        System.out.println("Пользователь один выключает напоминание 1");
+        remindService.switchOffRemind(remind1.getId());
+
+        System.out.println("Пользователь два меняет текст напоминания 4");
+        remindService.changeRemindText(remind4.getId());
+
+        System.out.println("Пользователь два выводит информацию о заметке 4");
+        remindService.printRemindInfo(remind4.getId());
+        return;
     }
 }

@@ -2,35 +2,33 @@ package org.thereminderbot.repository;
 
 import org.thereminderbot.domain.User;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * Репозиторий пользователя.
+ */
 public class UserRepository {
-    private final List<User> users = new ArrayList<User>();
+    private ArrayList<User> users;
 
-    public void loginUser(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("User не может быть null");
-        }
-
-        if (users.contains(user)) {
-            throw new IllegalArgumentException("Такой пользователь уже есть в коллекции.");
-        }
-
-        users.add(user);
+    public UserRepository() {
+        //TODO
+        return;
     }
 
-    public User findUserByName(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("Name не должно быть null");
-        }
-
-        for (var user : users) {
-            if (user.getName().equals(name)) {
-                return user;
-            }
-        }
-
+    public User getUserById(long id) {
+        //TODO
         return null;
+    }
+
+    public void addUser(User user) {
+        //TODO
+        return;
+    }
+
+    public void deleteUser(long id) {
+        //TODO
+        // Прошу обратить внимание, при удалении пользователя нам нужно удалить все его заметки.
+        return;
     }
 }
