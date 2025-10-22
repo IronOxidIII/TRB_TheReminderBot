@@ -18,18 +18,22 @@ public class RemindRepository {
     }
 
     /**
-     * Получить все напоминания по userId
+     * Получить все напоминания по userId.
+     * @param id идентификатор пользователя, для которого нужно найти напоминания
+     * @return список напоминаний, принадлежащих указанному пользователю
      */
     public ArrayList<Remind> getRemindsById(long id) {
-        ArrayList<Remind> result = new ArrayList<>();
-        for (Remind r : reminds) {
+        var result = new ArrayList<Remind>();
+        for (var r : reminds) {
             if (r.getUserId() == id) result.add(r);
         }
         return result;
     }
 
     /**
-     * Получить все напоминания по User
+     * Получить все напоминания по userId.
+     * @param id идентификатор пользователя, для которого нужно найти напоминания
+     * @return список напоминаний, принадлежащих указанному пользователю
      */
     public ArrayList<Remind> getRemindsByUser(User user) {
         if (user == null) return new ArrayList<>();
@@ -38,6 +42,8 @@ public class RemindRepository {
 
     /**
      * Добавить напоминание
+     * @param remind объект напоминания, который нужно добавить;
+     * если значение {null}, добавление не выполняется
      */
     public void addRemind(Remind remind) {
         if (remind != null) {
@@ -46,14 +52,20 @@ public class RemindRepository {
     }
 
     /**
-     * Удалить одно напоминание по его ID
+     * Удалить одно напоминание по его ID.
+     * @param remindId идентификатор напоминания, которое нужно удалить
+     * @return {true}, если напоминание было найдено и удалено;
+     * {false}, если напоминание с таким ID не найдено
      */
     public boolean deleteRemindById(long remindId) {
         return reminds.removeIf(r -> r.getId() == remindId);
     }
 
+
     /**
-     * Удалить все напоминания, принадлежащие пользователю с указанным userId.
+     * Удалить все напоминания, принадлежащие пользователю с указанным идентификатором.
+     * @param userId идентификатор пользователя, чьи напоминания нужно удалить
+     * @return количество удалённых напоминаний
      */
     public int deleteRemindsByUserId(long userId) {
         int before = reminds.size();
