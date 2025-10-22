@@ -5,29 +5,43 @@ import org.thereminderbot.domain.User;
 
 import java.util.ArrayList;
 
-/**
- * Репозиторий заметок.
- */
 public class RemindRepository {
-    private ArrayList<Remind> reminds;
+    private final ArrayList<Remind> reminds;
+
+    public ArrayList<Remind> getAll() {
+        return new ArrayList<>(reminds);
+    }
 
     public RemindRepository() {
-        //TODO
-        return;
+        // Инициализация пустого хранилища
+        this.reminds = new ArrayList<>();
     }
 
-    public ArrayList<Remind> getRemindById(long id) {
-        //TODO
-        return null;
+    /**
+     * Получить все напоминания по userId
+     */
+    public ArrayList<Remind> getRemindsById(long id) {
+        ArrayList<Remind> result = new ArrayList<>();
+        for (Remind r : reminds) {
+            if (r.getUserId() == id) result.add(r);
+        }
+        return result;
     }
 
+    /**
+     * Получить все напоминания по User
+     */
     public ArrayList<Remind> getRemindsByUser(User user) {
-        //TODO
-        return null;
+        if (user == null) return new ArrayList<>();
+        return getRemindsById(user.getId());
     }
 
+    /**
+     * Добавить напоминание
+     */
     public void addRemind(Remind remind) {
-        //TODO
-        return;
+        if (remind != null) {
+            reminds.add(remind);
+        }
     }
 }
