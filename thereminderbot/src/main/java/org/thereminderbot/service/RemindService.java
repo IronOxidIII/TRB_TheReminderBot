@@ -1,5 +1,5 @@
 package org.thereminderbot.service;
-
+import org.thereminderbot.enums.RemindStatus;
 import org.thereminderbot.domain.Remind;
 import org.thereminderbot.repository.RemindRepository;
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class RemindService {
         }
 
         System.out.println("Список всех напоминаний:");
-        for (Remind remind : reminds) {
+        for (var remind : reminds) {
             System.out.println(remind);
         }
     }
@@ -36,9 +36,11 @@ public class RemindService {
      */
     public void switchOffRemind(long remindId) {
         ArrayList<Remind> reminds = remindRepository.getAll();
-        for (Remind remind : reminds) {
+        for (var remind : reminds) {
             if (remind.getId() == remindId) {
-                remind.setStatus(0); //
+                remind.setStatus(RemindStatus.Deactivated);
+            }
+        }
                 System.out.println("Напоминание ID " + remindId + " отключено.");
                 return;
             }
@@ -46,30 +48,30 @@ public class RemindService {
         System.out.println("Напоминание с ID " + remindId + " не найдено.");
     }
 
-    /**
-     * Изменить текст напоминания.
-     */
-    public void changeRemindText(long remindId) {
-        ArrayList<Remind> reminds = remindRepository.getAll();
-        for (Remind remind : reminds) {
-            if (remind.getId() == remindId) {
-                Scanner scanner = new Scanner(System.in);
-                System.out.print("Введите новый текст для напоминания: ");
-                String newText = scanner.nextLine();
-                remind.setText(newText);
-                System.out.println("Текст напоминания успешно изменён.");
-                return;
-            }
+/**
+ * Изменить текст напоминания.
+ * @param ID напоминания.
+ * @param newText  напоминания.
+ * @throws IllegalArgumentException если напоминание с таким ID не найдено.
+ */
+public void changeRemindText(long remindId, String newText) {
+    var reminds = remindRepository.getAll();
+    for (var remind : reminds) {
+        if (remind.getId() == remindId) {
+            remind.setText(newText);
+            System.out.println("Текст напоминания успешно изменён.");
+            return;
         }
-        System.out.println("Напоминание с ID " + remindId + " не найдено.");
     }
+    throw new IllegalArgumentException("Напоминание с ID " + remindId + " не найдено.");
+}
 
     /**
      * Вывести информацию о напоминании.
      */
     public void printRemindInfo(long remindId) {
         ArrayList<Remind> reminds = remindRepository.getAll();
-        for (Remind remind : reminds) {
+        for (var remind : reminds) {
             if (remind.getId() == remindId) {
                 System.out.println("Информация о напоминании:");
                 System.out.println(remind);

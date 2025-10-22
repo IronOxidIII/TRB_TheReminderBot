@@ -36,7 +36,7 @@ public class Remind {
     /**
      * Статус заметки по {@link org.thereminderbot.enums.RemindStatus}.
      */
-    private int status;
+    private RemindStatus status;
 
     public Remind(long id, String text, long userId, OffsetDateTime time, LocalTime frequencyOfRepetition) {
         this.id = id;
@@ -44,6 +44,7 @@ public class Remind {
         this.userId = userId;
         this.time = time;
         this.frequencyOfRepetition = frequencyOfRepetition;
+        this.status = RemindStatus.Active;
     }
 
     /**
@@ -130,15 +131,25 @@ public class Remind {
      * Получить статус заметки по {@link org.thereminderbot.enums.RemindStatus}.
      * @return Число - id статуса.
      */
-    public int getStatus() {
+    public RemindStatus getStatus() {
         return status;
     }
 
     /**
      * Назначить новый статус заметкипо {@link org.thereminderbot.enums.RemindStatus}.
-     * @param status Число - id статуса.
+     * @param status - его id .
      */
-    public void setStatus(int status) {
+    public void setStatus(RemindStatus status) {
         this.status = status;
+    }
+    public String toString() {
+        return "Remind{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", text='" + text + '\'' +
+                ", time=" + time +
+                ", frequencyOfRepetition=" + frequencyOfRepetition +
+                ", status=" + status +
+                '}';
     }
 }

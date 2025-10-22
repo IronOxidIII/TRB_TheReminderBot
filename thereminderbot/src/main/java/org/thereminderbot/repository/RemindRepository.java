@@ -5,71 +5,97 @@ import org.thereminderbot.domain.User;
 
 import java.util.ArrayList;
 
+/**
+ * Репозиторий заметок.
+ */
+
 public class RemindRepository {
+    /**
+     * Список всех напоминаний, хранящихся в репозитории.
+     * Используется как внутренняя коллекция для хранения данных в памяти.
+     */
+
     private final ArrayList<Remind> reminds;
 
-    public ArrayList<Remind> getAll() {
-        return new ArrayList<>(reminds);
-    }
+    /**
+     * Возвращает копию списка всех напоминаний, сохранённых в репозитории.
+     *
+     * @return новый список, содержащий все текущие напоминания.
+     */
 
     public RemindRepository() {
         // Инициализация пустого хранилища
         this.reminds = new ArrayList<>();
     }
 
+    public ArrayList<Remind> getAll() {
+        return new ArrayList<>(reminds);
+    }
+
     /**
-     * Получить все напоминания по userId.
-     * @param id идентификатор пользователя, для которого нужно найти напоминания
-     * @return список напоминаний, принадлежащих указанному пользователю
+     * Получить одно напоминание по его идентификатору.
+     * @param ID напоминания.
+     * @return объект {Remind}, если найден; иначе {null}.
      */
-    public ArrayList<Remind> getRemindsById(long id) {
+    public Remind getRemindById(long remindId) {
+        for (var r : reminds) {
+            if (r.getId() == remindId) return r;
+        }
+        return null;
+    }
+
+    /**
+     * Получить все напоминания, принадлежащие пользователю с указанным userId.
+     * @param ID пользователя.
+     * @return список напоминаний, принадлежащих этому пользователю.
+     */
+
+    public ArrayList<Remind> getRemindsByUser(long userId) {
         var result = new ArrayList<Remind>();
         for (var r : reminds) {
-            if (r.getUserId() == id) result.add(r);
+            if (r.getUserId() == userId) result.add(r);
         }
         return result;
     }
 
     /**
-     * Получить все напоминания по userId.
-     * @param id идентификатор пользователя, для которого нужно найти напоминания
-     * @return список напоминаний, принадлежащих указанному пользователю
+     * Добавить напоминание.
+     * @param remind напоминание, которое нужно добавить;
+     * если значение {null}, добавление не выполняется.
      */
-    public ArrayList<Remind> getRemindsByUser(User user) {
-        if (user == null) return new ArrayList<>();
-        return getRemindsById(user.getId());
+    /**
+     * Добавляет новое напоминание в репозиторий.
+     * @param remind напоминание, которое нужно добавить.
+     * @throws IllegalArgumentException если remind равен {null}.
+     */
+    public void addRemind(Remind remind) {
+        if (remind == null) {
+            throw new IllegalArgumentException("Remind cannot be null");
+        }
+        reminds.add(remind);
     }
 
     /**
-     * Добавить напоминание
-     * @param remind объект напоминания, который нужно добавить;
-     * если значение {null}, добавление не выполняется
+     * Удаляет напоминание по ID.
+     * @param ID напоминания, которое нужно удалить.
+     * @throws IllegalArgumentException если напоминание с таким ID не найдено.
      */
-    public void addRemind(Remind remind) {
-        if (remind != null) {
-            reminds.add(remind);
+    public void deleteRemindById(long remindId) {
+        boolean removed = reminds.removeIf(r -> r.getId() == remindId);
+        if (!removed) {
+            throw new IllegalArgumentException("Remind with id " + remindId + " not found");
         }
     }
 
     /**
-     * Удалить одно напоминание по его ID.
-     * @param remindId идентификатор напоминания, которое нужно удалить
-     * @return {true}, если напоминание было найдено и удалено;
-     * {false}, если напоминание с таким ID не найдено
+     * Удаляет все напоминания, принадлежащие пользователю с указанным ID.
+     * @param ID пользователя, чьи напоминания нужно удалить.
+     * @throws IllegalArgumentException если у пользователя нет ни одного напоминания.
      */
-    public boolean deleteRemindById(long remindId) {
-        return reminds.removeIf(r -> r.getId() == remindId);
-    }
-
-
-    /**
-     * Удалить все напоминания, принадлежащие пользователю с указанным идентификатором.
-     * @param userId идентификатор пользователя, чьи напоминания нужно удалить
-     * @return количество удалённых напоминаний
-     */
-    public int deleteRemindsByUserId(long userId) {
-        int before = reminds.size();
-        reminds.removeIf(r -> r.getUserId() == userId);
-        return before - reminds.size();
+    public void deleteRemindsByUserId(long userId) {
+        boolean removed = reminds.removeIf(r -> r.getUserId() == userId);
+        if (!removed) {
+            throw new IllegalArgumentException("No reminds found for userId " + userId);
+        }
     }
 }
