@@ -23,7 +23,7 @@ public class UserService {
 
     public void notifyUser(long userId, long remindId) {
         try {
-            User user = userRepository.getUserById(userId);
+            Var user = userRepository.getUserById(userId);
             List<Remind> reminds = remindRepository.getRemindsById(remindId);
             if (reminds.isEmpty()) {
                 throw new IllegalArgumentException("Напоминание не найдено");
@@ -41,7 +41,7 @@ public class UserService {
 
     public void printUsersReminds(long userId) {
         try {
-            User user = userRepository.getUserById(userId);
+            Var user = userRepository.getUserById(userId);
             List<Remind> reminds = remindRepository.getRemindsByUser(user);
             if (reminds.isEmpty()) {
                 System.out.println("У пользователя нет напоминаний");
@@ -62,8 +62,8 @@ public class UserService {
 
     public void shareReminds(long userIdFrom, long userIdTo) {
         try {
-            User fromUser = userRepository.getUserById(userIdFrom);
-            User toUser = userRepository.getUserById(userIdTo);
+            Var fromUser = userRepository.getUserById(userIdFrom);
+            Var toUser = userRepository.getUserById(userIdTo);
             List<Remind> fromReminds = remindRepository.getRemindsByUser(fromUser);
             if (fromReminds.isEmpty()) {
                 System.out.println("У пользователя " + fromUser.getUserName() + " нет напоминаний для передачи");
@@ -86,7 +86,7 @@ public class UserService {
 
     public void turnOnMenu(long userId, UserMenu userMenu) {
         try {
-            User user = userRepository.getUserById(userId);
+            Var user = userRepository.getUserById(userId);
             user.setCurrentMenuId(userMenu.ordinal());
             System.out.println("Пользователь " + user.getUserName() + " переключился в меню " + userMenu);
         } catch (IllegalArgumentException e) {
@@ -100,7 +100,7 @@ public class UserService {
 
     public void printUserInfo(long userId) {
         try {
-            User user = userRepository.getUserById(userId);
+            Var user = userRepository.getUserById(userId);
             System.out.println("Информация о пользователе:");
             System.out.println("ID: " + user.getUserId());
             System.out.println("Имя: " + user.getUserName());
