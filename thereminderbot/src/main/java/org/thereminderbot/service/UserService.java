@@ -94,6 +94,10 @@ public class UserService {
         }
     }
 
+    /**
+     * Вывод информации о пользователе
+     */
+
     public void printUserInfo(long userId) {
         try {
             User user = userRepository.getUserById(userId);

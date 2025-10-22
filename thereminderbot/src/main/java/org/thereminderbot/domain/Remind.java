@@ -47,7 +47,7 @@ public class Remind {
     }
 
     /**
-     * Конструктор копирования с возможностью заменить userId
+     * Конструктор копирования с возможностью заменить userId.
      */
 
     public Remind(Remind remind, long newUserId) {
