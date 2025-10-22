@@ -44,4 +44,20 @@ public class RemindRepository {
             reminds.add(remind);
         }
     }
+
+    /**
+     * Удалить одно напоминание по его ID
+     */
+    public boolean deleteRemindById(long remindId) {
+        return reminds.removeIf(r -> r.getId() == remindId);
+    }
+
+    /**
+     * Удалить все напоминания, принадлежащие пользователю с указанным userId.
+     */
+    public int deleteRemindsByUserId(long userId) {
+        int before = reminds.size();
+        reminds.removeIf(r -> r.getUserId() == userId);
+        return before - reminds.size();
+    }
 }

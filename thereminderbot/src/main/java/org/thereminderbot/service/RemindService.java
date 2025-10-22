@@ -78,4 +78,12 @@ public class RemindService {
         }
         System.out.println("Напоминание с ID " + remindId + " не найдено.");
     }
+    public void deleteRemind(long remindId) {
+        boolean removed = remindRepository.deleteRemindById(remindId);
+        if (removed) {
+            System.out.println("Напоминание с ID " + remindId + " удалено.");
+        } else {
+            System.out.println("Напоминание с ID " + remindId + " не найдено.");
+        }
+    }
 }
