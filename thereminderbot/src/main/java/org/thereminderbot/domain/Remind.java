@@ -47,6 +47,18 @@ public class Remind {
     }
 
     /**
+     * Конструктор копирования с возможностью заменить userId.
+     */
+
+    public Remind(Remind remind, long newUserId) {
+        this.id = remind.id;
+        this.text = remind.text;
+        this.userId = newUserId;
+        this.time = remind.time;
+        this.frequencyOfRepetition = remind.frequencyOfRepetition;
+    }
+
+    /**
      * Получить id заметки.
      * @return Число - id заметки.
      */
