@@ -1,8 +1,8 @@
 package org.thereminderbot.repository;
 
 import org.thereminderbot.domain.User;
+import org.thereminderbot.domain.Remind;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -11,24 +11,36 @@ import java.util.ArrayList;
 public class UserRepository {
     private ArrayList<User> users;
 
-    public UserRepository() {
-        //TODO
-        return;
+    private RemindRepository remindRepository;
+
+    public UserRepository(RemindRepository remindRepository) {
+        // Инициализация коллекции пользователей
+        this.users = new ArrayList<>();
+        this.remindRepository = remindRepository;
     }
 
     public User getUserById(long id) {
-        //TODO
+        for (User user : users) {
+            if (user.getUserId() == id) {
+                return user;
+            }
+        }
         return null;
     }
 
     public void addUser(User user) {
-        //TODO
+        users.add(user);
         return;
     }
 
     public void deleteUser(long id) {
-        //TODO
-        // Прошу обратить внимание, при удалении пользователя нам нужно удалить все его заметки.
-        return;
+        User user = getUserById(id);
+        if (user != null) {
+            // Удаляем все напоминания пользователя одним вызовом
+            int removedCount = remindRepository.deleteRemindsByUserId(user.getUserId());
+            System.out.println("Удалено " + removedCount + " напоминаний пользователя " + user.getUserName());
+            users.remove(user);
+        }
     }
+
 }
