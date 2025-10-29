@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RemindService {
     private final RemindRepository remindRepository;
+
     private static final Logger log = LoggerFactory.getLogger(RemindService.class);
 
     public RemindService(RemindRepository remindRepository) {
@@ -22,17 +23,22 @@ public class RemindService {
      * Вывод всех напоминаний в консоль.
      */
     public void printAllReminds() {
-        ArrayList<Remind> reminds = remindRepository.getAll();
+        var reminds = remindRepository.getAll();
         if (reminds.isEmpty()) {
+            System.out.println("Нет ни одного напоминания.");
             log.info("Нет ни одного напоминания.");
             return;
         }
 
+        System.out.println("Список всех напоминаний:");
         log.info("Список всех напоминаний:");
+
         for (var remind : reminds) {
+            System.out.println(remind);
             log.debug("{}", remind);
         }
     }
+
 
     /**
      * Отключить напоминание (изменить статус).
@@ -57,6 +63,7 @@ public class RemindService {
  */
 public void changeRemindText(long remindId, String newText) {
     var remind = remindRepository.getRemindById(remindId);
+
     if (remind == null) {
         log.warn("Напоминание с ID {} не найдено.", remindId);
         throw new IllegalArgumentException("Напоминание с ID " + remindId + " не найдено.");
@@ -66,17 +73,22 @@ public void changeRemindText(long remindId, String newText) {
 }
 
     /**
-     * Вывести информацию о напоминании.
+     * Вывести информацию о напоминании в консоль.
+     * @param ID напоминания.
      */
     public void printRemindInfo(long remindId) {
         var remind = remindRepository.getRemindById(remindId);
+        
         if (remind == null) {
+            System.out.println("Напоминание с ID " + remindId + " не найдено.");
             log.warn("Напоминание с ID {} не найдено.", remindId);
             return;
         }
 
+        System.out.println("Информация о напоминании: " + remind);
         log.info("Информация о напоминании: {}", remind);
     }
+
     public void deleteRemind(long remindId) {
         try {
             remindRepository.deleteRemindById(remindId);

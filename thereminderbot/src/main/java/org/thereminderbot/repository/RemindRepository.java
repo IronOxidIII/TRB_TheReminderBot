@@ -11,23 +11,19 @@ import java.util.ArrayList;
  */
 
 public class RemindRepository {
-    /**
-     * Список всех напоминаний, хранящихся в репозитории.
-     * Используется как внутренняя коллекция для хранения данных в памяти.
-     */
 
     private final List<Remind> reminds;
+
+    public RemindRepository() {
+        // Инициализация пустого хранилища
+        this.reminds = new ArrayList<>();
+    }
 
     /**
      * Возвращает копию списка всех напоминаний, сохранённых в репозитории.
      *
      * @return новый список, содержащий все текущие напоминания.
      */
-
-    public RemindRepository() {
-        // Инициализация пустого хранилища
-        this.reminds = new ArrayList<>();
-    }
 
     public List<Remind> getAll() {
         return new ArrayList<>(reminds);
@@ -47,8 +43,6 @@ public class RemindRepository {
 
     /**
      * Получить все напоминания, принадлежащие пользователю с указанным userId.
-     * @param ID пользователя.
-     * @return список напоминаний, принадлежащих этому пользователю.
      */
 
     public List<Remind> getRemindsByUser(long userId) {
@@ -61,11 +55,6 @@ public class RemindRepository {
         return result;
     }
 
-    /**
-     * Добавить напоминание.
-     * @param remind напоминание, которое нужно добавить;
-     * если значение {null}, добавление не выполняется.
-     */
     /**
      * Добавляет новое напоминание в репозиторий.
      * @param remind напоминание, которое нужно добавить.
