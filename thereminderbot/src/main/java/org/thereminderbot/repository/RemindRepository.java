@@ -3,6 +3,7 @@ package org.thereminderbot.repository;
 import org.thereminderbot.domain.Remind;
 import org.thereminderbot.domain.User;
 
+import java.util.List;
 import java.util.ArrayList;
 
 /**
@@ -15,7 +16,7 @@ public class RemindRepository {
      * Используется как внутренняя коллекция для хранения данных в памяти.
      */
 
-    private final ArrayList<Remind> reminds;
+    private final List<Remind> reminds;
 
     /**
      * Возвращает копию списка всех напоминаний, сохранённых в репозитории.
@@ -28,7 +29,7 @@ public class RemindRepository {
         this.reminds = new ArrayList<>();
     }
 
-    public ArrayList<Remind> getAll() {
+    public List<Remind> getAll() {
         return new ArrayList<>(reminds);
     }
 
@@ -50,10 +51,12 @@ public class RemindRepository {
      * @return список напоминаний, принадлежащих этому пользователю.
      */
 
-    public ArrayList<Remind> getRemindsByUser(long userId) {
+    public List<Remind> getRemindsByUser(long userId) {
         var result = new ArrayList<Remind>();
         for (var r : reminds) {
-            if (r.getUserId() == userId) result.add(r);
+            if (r.getUserId() == userId) {
+                result.add(r);
+            }
         }
         return result;
     }

@@ -4,12 +4,15 @@ import org.thereminderbot.domain.Remind;
 import org.thereminderbot.repository.RemindRepository;
 import java.util.ArrayList;
 import java.util.Scanner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Сервис для работы с напоминаниями.
  */
 public class RemindService {
     private final RemindRepository remindRepository;
+    private static final Logger log = LoggerFactory.getLogger(RemindService.class);
 
     public RemindService(RemindRepository remindRepository) {
         this.remindRepository = remindRepository;
@@ -21,13 +24,13 @@ public class RemindService {
     public void printAllReminds() {
         ArrayList<Remind> reminds = remindRepository.getAll();
         if (reminds.isEmpty()) {
-            System.out.println("Нет ни одного напоминания.");
+            log.info("Нет ни одного напоминания.");
             return;
         }
 
-        System.out.println("Список всех напоминаний:");
+        log.info("Список всех напоминаний:");
         for (var remind : reminds) {
-            System.out.println(remind);
+            log.debug("{}", remind);
         }
     }
 
@@ -35,17 +38,15 @@ public class RemindService {
      * Отключить напоминание (изменить статус).
      */
     public void switchOffRemind(long remindId) {
-        ArrayList<Remind> reminds = remindRepository.getAll();
+        var reminds = remindRepository.getAll();
         for (var remind : reminds) {
             if (remind.getId() == remindId) {
                 remind.setStatus(RemindStatus.Deactivated);
-            }
-        }
-                System.out.println("Напоминание ID " + remindId + " отключено.");
+                log.info("Напоминание с ID {} отключено.", remindId);
                 return;
             }
         }
-        System.out.println("Напоминание с ID " + remindId + " не найдено.");
+        log.warn("Напоминание с ID {} не найдено.", remindId);
     }
 
 /**
@@ -55,37 +56,33 @@ public class RemindService {
  * @throws IllegalArgumentException если напоминание с таким ID не найдено.
  */
 public void changeRemindText(long remindId, String newText) {
-    var reminds = remindRepository.getAll();
-    for (var remind : reminds) {
-        if (remind.getId() == remindId) {
-            remind.setText(newText);
-            System.out.println("Текст напоминания успешно изменён.");
-            return;
-        }
+    var remind = remindRepository.getRemindById(remindId);
+    if (remind == null) {
+        log.warn("Напоминание с ID {} не найдено.", remindId);
+        throw new IllegalArgumentException("Напоминание с ID " + remindId + " не найдено.");
     }
-    throw new IllegalArgumentException("Напоминание с ID " + remindId + " не найдено.");
+    remind.setText(newText);
+    log.info("Текст напоминания для ID {} успешно изменён.", remindId);
 }
 
     /**
      * Вывести информацию о напоминании.
      */
     public void printRemindInfo(long remindId) {
-        ArrayList<Remind> reminds = remindRepository.getAll();
-        for (var remind : reminds) {
-            if (remind.getId() == remindId) {
-                System.out.println("Информация о напоминании:");
-                System.out.println(remind);
-                return;
-            }
+        var remind = remindRepository.getRemindById(remindId);
+        if (remind == null) {
+            log.warn("Напоминание с ID {} не найдено.", remindId);
+            return;
         }
-        System.out.println("Напоминание с ID " + remindId + " не найдено.");
+
+        log.info("Информация о напоминании: {}", remind);
     }
     public void deleteRemind(long remindId) {
-        boolean removed = remindRepository.deleteRemindById(remindId);
-        if (removed) {
-            System.out.println("Напоминание с ID " + remindId + " удалено.");
-        } else {
-            System.out.println("Напоминание с ID " + remindId + " не найдено.");
+        try {
+            remindRepository.deleteRemindById(remindId);
+            log.info("Напоминание с ID {} удалено.", remindId);
+        } catch (IllegalArgumentException e) {
+            log.warn("Не удалось удалить напоминание: {}", e.getMessage());
         }
     }
 }
