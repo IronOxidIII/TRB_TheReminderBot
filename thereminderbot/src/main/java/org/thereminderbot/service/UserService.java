@@ -5,10 +5,13 @@ import org.thereminderbot.enums.UserMenu;
 import org.thereminderbot.domain.Remind;
 import org.thereminderbot.repository.UserRepository;
 import org.thereminderbot.repository.RemindRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private UserRepository userRepository;
     private RemindRepository remindRepository;
 
@@ -18,18 +21,13 @@ public class UserService {
     }
 
     /**
-     * Поиск пользователя по id
+     * Уведомление пользователя
      */
-
     public void notifyUser(long userId, long remindId) {
         try {
-            Var user = userRepository.getUserById(userId);
-            List<Remind> reminds = remindRepository.getRemindsById(remindId);
-            if (reminds.isEmpty()) {
-                throw new IllegalArgumentException("Напоминание не найдено");
-            }
-            Remind remind = reminds.get(0);
-            System.out.println("Уведомление для пользователя " + user.getUserName() + ": " + remind.getText());
+            User user = userRepository.getUserById(userId);
+            Remind remind = remindRepository.getRemindById(remindId);
+            log.info("Уведомление для пользователя {}: {}", user.getUserName(), remind.getText());
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
         }
@@ -38,76 +36,82 @@ public class UserService {
     /**
      * Вывод всех напоминаний пользователя
      */
-
     public void printUsersReminds(long userId) {
         try {
-            Var user = userRepository.getUserById(userId);
-            List<Remind> reminds = remindRepository.getRemindsByUser(user);
+            User user = userRepository.getUserById(userId);
+            List<Remind> reminds = remindRepository.getRemindsByUser(user.getUserId());
             if (reminds.isEmpty()) {
-                System.out.println("У пользователя нет напоминаний");
+                log.info("У пользователя {} нет напоминаний.", user.getUserName());
                 return;
             }
-            System.out.println("Напоминания пользователя " + user.getUserName() + ":");
+            log.info("Напоминания пользователя {}:", user.getUserName());
             for (Remind r : reminds) {
-                System.out.println("ID: " + r.getId() + ", Текст: " + r.getText());
+                log.info("ID: {}, Текст: {}", r.getId(), r.getText());
             }
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            log.warn("Ошибка при получении напоминаний пользователя: {}", e.getMessage());
         }
     }
 
     /**
      * Передача напоминаний от одного пользователя к другому
      */
-
     public void shareReminds(long userIdFrom, long userIdTo) {
         try {
-            Var fromUser = userRepository.getUserById(userIdFrom);
-            Var toUser = userRepository.getUserById(userIdTo);
+            User fromUser = userRepository.getUserById(userIdFrom);
+            User toUser = userRepository.getUserById(userIdTo);
             List<Remind> fromReminds = remindRepository.getRemindsByUser(fromUser);
             if (fromReminds.isEmpty()) {
-                System.out.println("У пользователя " + fromUser.getUserName() + " нет напоминаний для передачи");
+                log.info("У пользователя {} нет напоминаний для передачи", fromUser.getUserName());
                 return;
             }
             for (Remind remind : fromReminds) {
                 Remind copiedRemind = new Remind(remind, toUser.getUserId());
                 remindRepository.addRemind(copiedRemind);
             }
-            System.out.println("Напоминания от пользователя " + fromUser.getUserName() +
-                    " успешно переданы пользователю " + toUser.getUserName());
+            log.info("Напоминания от пользователя {} успешно переданы пользователю {}",
+                    fromUser.getUserName(), toUser.getUserName());
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    /**
-     * Переключение меню
-     */
-
-    public void turnOnMenu(long userId, UserMenu userMenu) {
-        try {
-            Var user = userRepository.getUserById(userId);
-            user.setCurrentMenuId(userMenu.ordinal());
-            System.out.println("Пользователь " + user.getUserName() + " переключился в меню " + userMenu);
-        } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            log.warn("Ошибка при передачи напоминаний: {}", e.getMessage());
         }
     }
 
     /**
      * Вывод информации о пользователе
      */
-
     public void printUserInfo(long userId) {
         try {
-            Var user = userRepository.getUserById(userId);
-            System.out.println("Информация о пользователе:");
-            System.out.println("ID: " + user.getUserId());
-            System.out.println("Имя: " + user.getUserName());
-            System.out.println("Часовой пояс: " + user.getTimeZoneOffset());
-            System.out.println("Текущее меню: " + UserMenu.values()[user.getCurrentMenuId()]);
+            String userInfo = """
+            Информация о пользователе:
+            ID: %d
+            Имя: %s
+            Часовой пояс: %d
+            Текущее меню: %s
+            """.formatted(
+                    user.getUserId(),
+                    user.getUserName(),
+                    user.getTimeZoneOffset(),
+                    UserMenu.values()[user.getCurrentMenuId()]
+            );
+            System.out.println(userInfo);
+            log.info("Выведена информация о пользователе ID: {}", userId);
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            log.warn("Ошибка при получении информации о пользователе с ID: {}", userId);
         }
+    }
+
+    /**
+     * Удаление пользователя и его напоминаний
+     */
+    public void deleteUserAndReminds(long userId) {
+        if (userId <= 0) {
+            log.warn("Попытка удаления с невалидным ID пользователя: {}", userId);
+            throw new IllegalArgumentException("Невалидный ID пользователя");
+        }
+        try {
+            remindRepository.deleteRemindsByUserId(userId);
+            userRepository.deleteUser(userId);
+        } catch (IllegalArgumentException e) {
+            log.warn("Ошибка при удалении пользователя"};
     }
 }

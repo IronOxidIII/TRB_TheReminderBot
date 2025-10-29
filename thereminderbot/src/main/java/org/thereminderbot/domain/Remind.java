@@ -1,7 +1,8 @@
 package org.thereminderbot.domain;
 
-import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.Duration;
+import org.thereminderbot.enums.RemindStatus;
 
 /**
  * Доменный класс заметки.
@@ -29,33 +30,22 @@ public class Remind {
     private OffsetDateTime time;
 
     /**
-     * Частота повторения напоминания.
+     * Интервал повторения напоминания.
      */
-    private LocalTime frequencyOfRepetition;
+    private Duration frequencyOfRepetition;
 
     /**
      * Статус заметки по {@link org.thereminderbot.enums.RemindStatus}.
      */
-    private int status;
+    private RemindStatus status;
 
-    public Remind(long id, String text, long userId, OffsetDateTime time, LocalTime frequencyOfRepetition) {
+    public Remind(long id, String text, long userId, OffsetDateTime time, Duration frequencyOfRepetition) {
         this.id = id;
         this.text = text;
         this.userId = userId;
         this.time = time;
         this.frequencyOfRepetition = frequencyOfRepetition;
-    }
-
-    /**
-     * Конструктор копирования с возможностью заменить userId.
-     */
-
-    public Remind(Remind remind, long newUserId) {
-        this.id = remind.id;
-        this.text = remind.text;
-        this.userId = newUserId;
-        this.time = remind.time;
-        this.frequencyOfRepetition = remind.frequencyOfRepetition;
+        this.status = RemindStatus.Active;
     }
 
     /**
@@ -79,7 +69,7 @@ public class Remind {
      * @return Строка - текст заметки.
      */
     public String getText() {
-        return new String(text);
+        return text;
     }
 
     /**
@@ -123,10 +113,10 @@ public class Remind {
     }
 
     /**
-     * Получить частоту повторения уведомления о заметке.
+     * Получить интервал повторения уведомления о заметке.
      * @return Время - частота повторения уведомления о заметке.
      */
-    public LocalTime getFrequencyOfRepetition() {
+    public Duration getFrequencyOfRepetition() {
         return frequencyOfRepetition;
     }
 
@@ -134,7 +124,7 @@ public class Remind {
      * Назначить новую частоту повторения уведомления о заметке.
      * @param frequencyOfRepetition Время - новая частота повторения уведомления о заметке.
      */
-    public void setFrequencyOfRepetition(LocalTime frequencyOfRepetition) {
+    public void setFrequencyOfRepetition(Duration frequencyOfRepetition) {
         this.frequencyOfRepetition = frequencyOfRepetition;
     }
 
@@ -142,15 +132,25 @@ public class Remind {
      * Получить статус заметки по {@link org.thereminderbot.enums.RemindStatus}.
      * @return Число - id статуса.
      */
-    public int getStatus() {
+    public RemindStatus getStatus() {
         return status;
     }
 
     /**
      * Назначить новый статус заметкипо {@link org.thereminderbot.enums.RemindStatus}.
-     * @param status Число - id статуса.
+     * @param status - его id .
      */
-    public void setStatus(int status) {
+    public void setStatus(RemindStatus status) {
         this.status = status;
+    }
+    public String toString() {
+        return "Remind{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", text='" + text + '\'' +
+                ", time=" + time +
+                ", frequencyOfRepetition=" + frequencyOfRepetition +
+                ", status=" + status +
+                '}';
     }
 }
