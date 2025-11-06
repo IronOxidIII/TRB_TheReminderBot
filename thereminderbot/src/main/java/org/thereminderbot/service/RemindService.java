@@ -20,21 +20,18 @@ public class RemindService {
     }
 
     /**
-     * Вывод всех напоминаний в консоль.
+     * Логирует список всех напоминаний.
      */
     public void printAllReminds() {
         var reminds = remindRepository.getAll();
         if (reminds.isEmpty()) {
-            System.out.println("Нет ни одного напоминания.");
             log.info("Нет ни одного напоминания.");
             return;
         }
 
-        System.out.println("Список всех напоминаний:");
         log.info("Список всех напоминаний:");
 
         for (var remind : reminds) {
-            System.out.println(remind);
             log.debug("{}", remind);
         }
     }
@@ -48,7 +45,7 @@ public class RemindService {
         for (var remind : reminds) {
             if (remind.getId() == remindId) {
                 remind.setStatus(RemindStatus.Deactivated);
-                log.info("Напоминание с ID {} отключено.", remindId);
+                log.warn("Напоминание с ID {} отключено.", remindId);
                 return;
             }
         }
@@ -73,19 +70,17 @@ public void changeRemindText(long remindId, String newText) {
 }
 
     /**
-     * Вывести информацию о напоминании в консоль.
+     * Логирует информацию о напоминании.
      * @param ID напоминания.
      */
     public void printRemindInfo(long remindId) {
         var remind = remindRepository.getRemindById(remindId);
         
         if (remind == null) {
-            System.out.println("Напоминание с ID " + remindId + " не найдено.");
             log.warn("Напоминание с ID {} не найдено.", remindId);
             return;
         }
 
-        System.out.println("Информация о напоминании: " + remind);
         log.info("Информация о напоминании: {}", remind);
     }
 
