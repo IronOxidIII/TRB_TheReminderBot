@@ -20,24 +20,6 @@ public class RemindService {
     }
 
     /**
-     * Логирует список всех напоминаний.
-     */
-    public void printAllReminds() {
-        var reminds = remindRepository.getAll();
-        if (reminds.isEmpty()) {
-            log.info("Нет ни одного напоминания.");
-            return;
-        }
-
-        log.info("Список всех напоминаний:");
-
-        for (var remind : reminds) {
-            log.debug("{}", remind);
-        }
-    }
-
-
-    /**
      * Отключить напоминание (изменить статус).
      */
     public void switchOffRemind(long remindId) {
@@ -68,21 +50,6 @@ public void changeRemindText(long remindId, String newText) {
     remind.setText(newText);
     log.info("Текст напоминания для ID {} успешно изменён.", remindId);
 }
-
-    /**
-     * Логирует информацию о напоминании.
-     * @param ID напоминания.
-     */
-    public void printRemindInfo(long remindId) {
-        var remind = remindRepository.getRemindById(remindId);
-        
-        if (remind == null) {
-            log.warn("Напоминание с ID {} не найдено.", remindId);
-            return;
-        }
-
-        log.info("Информация о напоминании: {}", remind);
-    }
 
     public void deleteRemind(long remindId) {
         try {
