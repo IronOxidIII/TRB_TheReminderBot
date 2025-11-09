@@ -29,7 +29,7 @@ public class UserService {
             Remind remind = remindRepository.getRemindById(remindId);
             log.info("Уведомление для пользователя {}: {}", user.getUserName(), remind.getText());
         } catch (IllegalArgumentException e) {
-            System.out.println(e.getMessage());
+            log.warn("Ошибка уведомления пользователя: {}", e.getMessage());
         }
     }
 
@@ -93,8 +93,7 @@ public class UserService {
                     user.getTimeZoneOffset(),
                     UserMenu.values()[user.getCurrentMenuId()]
             );
-            System.out.println(userInfo);
-            log.info("Выведена информация о пользователе ID: {}", userId);
+            log.info("Информация о пользователе:\n{}", userInfo);
         } catch (IllegalArgumentException e) {
             log.warn("Ошибка при получении информации о пользователе с ID: {}", userId);
         }
