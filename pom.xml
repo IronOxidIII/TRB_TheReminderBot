@@ -7,6 +7,7 @@
     <groupId>org.example</groupId>
     <artifactId>TRB_TheReminderBot</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <url>https://github.com/IronOxidIII/TRB_TheReminderBot</url>
 
     <properties>
         <maven.compiler.source>24</maven.compiler.source>
@@ -24,7 +25,25 @@
                     <outputDirectory>thereminderbot/src/site</outputDirectory>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.7.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <id>TheReminderBot Repository</id>
+            <name>USSR</name>
+            <url>file:thereminderbot/art/</url>
+        </repository>
+    </distributionManagement>
 
 </project>
