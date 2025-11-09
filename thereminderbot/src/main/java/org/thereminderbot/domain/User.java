@@ -1,5 +1,7 @@
 package org.thereminderbot.domain;
 
+import java.time.ZoneId;
+
 /**
  * Доменный класс пользователя.
  */
@@ -15,9 +17,9 @@ public class User {
     private String userName;
 
     /**
-     * Отличие часового пояса пользователя относительно +0.
+     * Часовой пояс пользователя.
      */
-    private int timeZoneOffset;
+    private ZoneId timeZoneOffset;
 
     /**
      * Меню, в котором находится пользователь.
@@ -25,7 +27,7 @@ public class User {
      */
     private int currentMenuId;
 
-    public User(long userId, String userName, int timeZoneOffset, int currentMenuId) {
+    public User(long userId, String userName, ZoneId timeZoneOffset, int currentMenuId) {
         this.userId = userId;
         this.userName = userName;
         this.timeZoneOffset = timeZoneOffset;
@@ -65,18 +67,18 @@ public class User {
     }
 
     /**
-     * Получить отличие часового пояса пользователя относительно +0.
-     * @return Число - отличие часового пояса пользователя от +0.
+     * Получить часовой пояс пользователя.
+     * @return ZoneId - Часовой пояс пользователя.
      */
-    public int getTimeZoneOffset() {
+    public ZoneId getTimeZoneOffset() {
         return timeZoneOffset;
     }
 
     /**
-     * Назначить новое отличие часового пояса пользователя относительно +0.
-     * @param timeZoneOffset Число - новок отличие часового пояса пользователя от +0.
+     * Назначить часовой пояс пользователю.
+     * @param timeZoneOffset Новый часовой пояс пользователя.
      */
-    public void setTimeZoneOffset(int timeZoneOffset) {
+    public void setTimeZoneOffset(ZoneId timeZoneOffset) {
         this.timeZoneOffset = timeZoneOffset;
     }
 
