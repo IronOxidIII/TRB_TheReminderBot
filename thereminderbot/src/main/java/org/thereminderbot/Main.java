@@ -84,7 +84,6 @@ public class Main {
 
         System.out.println("Пользователь два выводит информацию о заметке 4");
         remindService.printRemindInfo(remind4.getId());
-        remind3.getId()
         return;
     }
 }
