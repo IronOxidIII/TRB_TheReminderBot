@@ -12,10 +12,12 @@
     <properties>
         <maven.compiler.source>24</maven.compiler.source>
         <maven.compiler.target>24</maven.compiler.target>
-        <project.build.sourceEncoding>windows-1251</project.build.sourceEncoding>
+        <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
     </properties>
 
     <build>
+        <sourceDirectory>thereminderbot/src/main/java</sourceDirectory>
+        <testSourceDirectory>thereminderbot/src/test</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
