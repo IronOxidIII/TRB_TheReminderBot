@@ -6,6 +6,10 @@ import org.thereminderbot.components.service.ServiceComponent;
 import java.io.PrintStream;
 import java.util.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.thereminderbot.domain.User;
+
 public class App {
     private final RepositoryComponent repositoryComponent;
     private final ServiceComponent serviceComponent;
@@ -46,15 +50,37 @@ public class App {
      * Добавить пользователя.
      */
     private void addUser() {
-        //TODO
+        try {
+            System.out.print("Введите имя пользователя: ");
+            String name = scanner.nextLine().trim();
+            if (name.isEmpty()) {
+                log.warn("Имя пользователя не может быть пустым.");
+                return;
+            }
+            User user = new User(name);
+            repositoryComponent.getUserRepository().addUser(user);
+            log.info("Пользователь '{}' добавлен с ID {}", name, user.getUserId());
+        } catch (Exception e) {
+            log.error("Ошибка при добавлении пользователя: {}", e.getMessage());
+        }
     }
 
     /**
      * Удалить пользователя.
      * @param id - строка с id пользователя.
      */
-    private void deleteUser(String id) {
-        //TODO
+    private void deleteUser(String idStr) {
+        if (!ParsingHelper.isId(idStr)) {
+            log.warn("Некорректный ID пользователя: {}", idStr);
+            return;
+        }
+        long userId = Long.parseLong(idStr);
+        try {
+            ServiceComponent.getUserService().deleteUserAndReminds(userId);
+            log.info("Пользователь с ID {} и его напоминания удалены.", userId);
+        } catch (IllegalArgumentException e) {
+            log.warn("Ошибка при удалении пользователя: {}", e.getMessage());
+        }
     }
 
     /**
@@ -76,8 +102,17 @@ public class App {
     /**
      * Напечатать информацию о пользователе.
      */
-    private void getUserInfo(String id) {
-        //TODO
+    private void getUserInfo(String idStr) {
+        if (!ParsingHelper.isId(idStr)) {
+            log.warn("Некорректный ID пользователя: {}", idStr);
+            return;
+        }
+        long userId = Long.parseLong(idStr);
+        try {
+            ServiceComponent.getUserService().printUserInfo(userId);
+        } catch (IllegalArgumentException e) {
+            log.warn("Ошибка при получении информации о пользователе: {}", e.getMessage());
+        }
     }
 
     /**
@@ -90,8 +125,17 @@ public class App {
     /**
      * Напечатать все напоминания пользователя.
      */
-    private void listUsersReminds(String id) {
-        //TODO
+    private void listUsersReminds(String idStr) {
+        if (!ParsingHelper.isId(idStr)) {
+            log.warn("Некорректный ID пользователя: {}", idStr);
+            return;
+        }
+        long userId = Long.parseLong(idStr);
+        try {
+            ServiceComponent.getUserService().printUsersReminds(userId);
+        } catch (IllegalArgumentException e) {
+            log.warn("Ошибка при выводе напоминаний пользователя: {}", e.getMessage());
+        }
     }
 
     /**
@@ -104,9 +148,27 @@ public class App {
     /**
      * Изменить имя пользователя.
      */
-    private void changeUserName(String id) {
-        //TODO
+    private void changeUserName(String idStr) {
+        if (!ParsingHelper.isId(idStr)) {
+            log.warn("Некорректный ID пользователя: {}", idStr);
+            return;
+        }
+        long userId = Long.parseLong(idStr);
+        try {
+            User user = repositoryComponent.getUserRepository().getUserById(userId);
+            log.info("Введите новое имя пользователя:");
+            String newName = scanner.nextLine().trim();
+            if (newName.isEmpty()) {
+                log.warn("Имя пользователя не может быть пустым.");
+                return;
+            }
+            user.setUserName(newName);
+            log.info("Имя пользователя с ID {} изменено на '{}'", userId, newName);
+        } catch (IllegalArgumentException e) {
+            log.warn("Ошибка при изменении имени пользователя: {}", e.getMessage());
+        }
     }
+
 
     private void printWelcome() {
         StringBuilder stringBuilder = new StringBuilder();
