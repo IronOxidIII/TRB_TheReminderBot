@@ -47,9 +47,67 @@ public class App {
      * Добавить напоминание.
      */
     private void addRemind() {
-        //TODO
-    }
+        try {
 
+            System.out.print("Введите ID пользователя: ");
+            String userIdStr = scanner.nextLine().trim();
+
+            if (!ParsingHelper.isId(userIdStr)) {
+                log.warn("Некорректный ID пользователя: {}", userIdStr);
+                return;
+            }
+            long userId = Long.parseLong(userIdStr);
+
+            var user = repositoryComponent.getUserRepository().getUserById(userId);
+            if (user == null) {
+                log.warn("Пользователь с ID {} не найден.", userId);
+                return;
+            }
+
+            System.out.print("Введите текст напоминания: ");
+            String text = scanner.nextLine().trim();
+            if (text.isEmpty()) {
+                log.warn("Текст напоминания не может быть пустым.");
+                return;
+            }
+
+            System.out.print("Введите дату и время (формат YYYY-MM-DD HH:MM): ");
+            String timeStr = scanner.nextLine().trim();
+
+            OffsetDateTime time;
+            try {
+                var localDT = java.time.LocalDateTime.parse(timeStr,
+                        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                time = localDT.atOffset(java.time.ZoneOffset.UTC);
+            } catch (Exception e) {
+                log.warn("Некорректная дата/время: {}", timeStr);
+                return;
+            }
+
+            System.out.print("Введите интервал в часах (например 0, 1, 24): ");
+            String intervalStr = scanner.nextLine().trim();
+
+            long hours;
+            try {
+                hours = Long.parseLong(intervalStr);
+            } catch (NumberFormatException e) {
+                log.warn("Некорректный интервал: {}", intervalStr);
+                return;
+            }
+
+            Duration frequency = Duration.ofHours(hours);
+
+            long remindId = repositoryComponent.getRemindRepository().getAll().size() + 1;
+
+            Remind remind = new Remind(remindId, text, userId, time, frequency);
+            repositoryComponent.getRemindRepository().addRemind(remind);
+
+            log.info("Напоминание ID {} добавлено пользователю {}", remindId, userId);
+
+        } catch (Exception e) {
+            log.error("Ошибка при добавлении напоминания: {}", e.getMessage());
+        }
+    }
     /**
      * Добавить пользователя.
      */
@@ -69,16 +127,41 @@ public class App {
      * Удалить напоминание.
      * @param id - строка с id напоминания.
      */
-    private void delete_remind(String id) {
-        //TODO
+    private void delete_remind(String idStr) {
+        if (!ParsingHelper.isId(idStr)) {
+            log.warn("Некорректный ID напоминания: {}", idStr);
+            return;
+        }
+        long id = Long.parseLong(idStr);
+
+        try {
+            ServiceComponent.getRemindService().deleteRemind(id);
+        } catch (Exception e) {
+            log.warn("Ошибка при удалении напоминания: {}", e.getMessage());
+        }
     }
 
     /**
      * Напечатать информацию о напоминании.
      * @param id - строка с id напоминания.
      */
-    private void getRemindInfo(String id) {
-        //TODO
+    private void getRemindInfo(String idStr) {
+        if (!ParsingHelper.isId(idStr)) {
+            log.warn("Некорректный ID напоминания: {}", idStr);
+            return;
+        }
+
+        long remindId = Long.parseLong(idStr);
+
+        Remind remind = ServiceComponent.getRemindService().getRemind(remindId);
+
+        if (remind == null) {
+            System.out.println("Напоминание с ID " + remindId + " не найдено.");
+            return;
+        }
+
+        System.out.println("Информация о напоминании:");
+        System.out.println(remind);
     }
 
     /**
@@ -92,21 +175,61 @@ public class App {
      * Вывести все напомининия.
      */
     private void listAllReminds() {
-        //TODO
+        var reminds = ServiceComponent.getRemindService().getAllReminds();
+
+        if (reminds.isEmpty()) {
+            System.out.println("Нет ни одного напоминания.");
+            return;
+        }
+
+        System.out.println("Список всех напоминаний:");
+        for (var remind : reminds) {
+            System.out.println(remind);
+        }
     }
 
     /**
      * Напечатать все напоминания пользователя.
      */
-    private void listUsersReminds(String id) {
-        //TODO
+    private void listUsersReminds(String idStr) {
+        if (!ParsingHelper.isId(idStr)) {
+            log.warn("Некорректный ID пользователя: {}", idStr);
+            return;
+        }
+
+        long userId = Long.parseLong(idStr);
+
+        var reminds = ServiceComponent.getRemindService().getUserReminds(userId);
+
+        if (reminds.isEmpty()) {
+            System.out.println("У пользователя с ID " + userId + " нет напоминаний.");
+            return;
+        }
+
+        System.out.println("Напоминания пользователя " + userId + ":");
+        for (var r : reminds) {
+            System.out.println(r);
+        }
     }
 
     /**
      * Изменить текст напомининия.
      */
-    private void changeRemindText(String id) {
-        //TODO
+    private void changeRemindText(String idStr) {
+        if (!ParsingHelper.isId(idStr)) {
+            log.warn("Некорректный ID напоминания: {}", idStr);
+            return;
+        }
+        long remindId = Long.parseLong(idStr);
+
+        log.info("Введите новый текст напоминания:");
+        String newText = scanner.nextLine().trim();
+        if (newText.isEmpty()) {
+            log.warn("Текст не может быть пустым.");
+            return;
+        }
+
+        ServiceComponent.getRemindService().changeRemindText(remindId, newText);
     }
 
     /**
