@@ -10,14 +10,15 @@ import org.thereminderbot.service.UserService;
 
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 
 public class Main {
     public static void main(String[] args) {
         var userRepository = new UserRepository();
         var remindRepository = new RemindRepository();
 
-        var user1 = new User(1, "Vasya", 5, UserMenu.MainPage.ordinal());
-        var user2 = new User(2, "Misha", 3, UserMenu.MainPage.ordinal());
+        var user1 = new User(1, "Vasya", ZoneId.systemDefault(), UserMenu.MainPage.ordinal());
+        var user2 = new User(2, "Misha", ZoneId.systemDefault(), UserMenu.MainPage.ordinal());
 
         var remind1 = new Remind(
                 1,
