@@ -36,7 +36,7 @@ public class RemindService {
 
 /**
  * Изменить текст напоминания.
- * @param ID напоминания.
+ * @param remindId - id напоминания.
  * @param newText  напоминания.
  * @throws IllegalArgumentException если напоминание с таким ID не найдено.
  */
