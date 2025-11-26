@@ -1,5 +1,6 @@
 package org.thereminderbot.components.service;
 
+import org.thereminderbot.repository.RemindRepository;
 import org.thereminderbot.service.RemindService;
 import org.thereminderbot.service.UserService;
 
@@ -15,7 +16,7 @@ public class ServiceComponent {
      */
     public ServiceComponent() {
         userService = new UserService();
-        remindService = new RemindService();
+        remindService = new RemindService(new RemindRepository());
     }
 
     /**
