@@ -1,4 +1,5 @@
 target/
+/thereminderbot/art/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -40,5 +41,4 @@ build/
 .DS_Store
 /jquery/
 /resources/
-/thereminderbot/art/
 /.idea/
