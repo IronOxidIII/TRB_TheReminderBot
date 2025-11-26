@@ -51,17 +51,25 @@ public class App {
      */
     private void addUser() {
         try {
-            System.out.print("Введите имя пользователя: ");
+            userOut.print("Введите имя пользователя: ");
             String name = scanner.nextLine().trim();
+
             if (name.isEmpty()) {
-                log.warn("Имя пользователя не может быть пустым.");
+                userOut.println("Имя пользователя не может быть пустым.");
                 return;
             }
+
             User user = new User(name);
             repositoryComponent.getUserRepository().addUser(user);
-            log.info("Пользователь '{}' добавлен с ID {}", name, user.getUserId());
+            userOut.println(String.format(
+                    "Пользователь '%s' добавлен с ID %d",
+                    name, user.getUserId()
+            ));
         } catch (Exception e) {
-            log.error("Ошибка при добавлении пользователя: {}", e.getMessage());
+            userOut.println(String.format(
+                    "Ошибка при добавлении пользователя: %s",
+                    e.getMessage()
+            ));
         }
     }
 
@@ -71,15 +79,23 @@ public class App {
      */
     private void deleteUser(String idStr) {
         if (!ParsingHelper.isId(idStr)) {
-            log.warn("Некорректный ID пользователя: {}", idStr);
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
             return;
         }
+
         long userId = Long.parseLong(idStr);
+
         try {
             ServiceComponent.getUserService().deleteUserAndReminds(userId);
-            log.info("Пользователь с ID {} и его напоминания удалены.", userId);
+            userOut.println(String.format(
+                    "Пользователь с ID %d и его напоминания удалены.",
+                    userId
+            ));
         } catch (IllegalArgumentException e) {
-            log.warn("Ошибка при удалении пользователя: {}", e.getMessage());
+            userOut.println(String.format(
+                    "Ошибка при удалении пользователя: %s",
+                    e.getMessage()
+            ));
         }
     }
 
@@ -104,14 +120,19 @@ public class App {
      */
     private void getUserInfo(String idStr) {
         if (!ParsingHelper.isId(idStr)) {
-            log.warn("Некорректный ID пользователя: {}", idStr);
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
             return;
         }
+
         long userId = Long.parseLong(idStr);
+
         try {
             ServiceComponent.getUserService().printUserInfo(userId);
         } catch (IllegalArgumentException e) {
-            log.warn("Ошибка при получении информации о пользователе: {}", e.getMessage());
+            userOut.println(String.format(
+                    "Ошибка при получении информации о пользователе: %s",
+                    e.getMessage()
+            ));
         }
     }
 
@@ -127,14 +148,19 @@ public class App {
      */
     private void listUsersReminds(String idStr) {
         if (!ParsingHelper.isId(idStr)) {
-            log.warn("Некорректный ID пользователя: {}", idStr);
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
             return;
         }
+
         long userId = Long.parseLong(idStr);
+
         try {
             ServiceComponent.getUserService().printUsersReminds(userId);
         } catch (IllegalArgumentException e) {
-            log.warn("Ошибка при выводе напоминаний пользователя: {}", e.getMessage());
+            userOut.println(String.format(
+                    "Ошибка при выводе напоминаний пользователя: %s",
+                    e.getMessage()
+            ));
         }
     }
 
@@ -150,25 +176,34 @@ public class App {
      */
     private void changeUserName(String idStr) {
         if (!ParsingHelper.isId(idStr)) {
-            log.warn("Некорректный ID пользователя: {}", idStr);
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
             return;
         }
+
         long userId = Long.parseLong(idStr);
+
         try {
             User user = repositoryComponent.getUserRepository().getUserById(userId);
-            log.info("Введите новое имя пользователя:");
+            userOut.print("Введите новое имя пользователя: ");
             String newName = scanner.nextLine().trim();
+
             if (newName.isEmpty()) {
-                log.warn("Имя пользователя не может быть пустым.");
+                userOut.println("Имя пользователя не может быть пустым.");
                 return;
             }
+
             user.setUserName(newName);
-            log.info("Имя пользователя с ID {} изменено на '{}'", userId, newName);
+            userOut.println(String.format(
+                    "Имя пользователя с ID %d изменено на '%s'",
+                    userId, newName
+            ));
         } catch (IllegalArgumentException e) {
-            log.warn("Ошибка при изменении имени пользователя: {}", e.getMessage());
+            userOut.println(String.format(
+                    "Ошибка при изменении имени пользователя: %s",
+                    e.getMessage()
+            ));
         }
     }
-
 
     private void printWelcome() {
         StringBuilder stringBuilder = new StringBuilder();
