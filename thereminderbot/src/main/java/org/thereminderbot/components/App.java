@@ -5,14 +5,10 @@ import org.thereminderbot.components.service.ServiceComponent;
 
 import java.io.PrintStream;
 import java.util.*;
-import java.io.PrintStream;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
     private final ServiceComponent serviceComponent;
-
-    private final Scanner scanner = new Scanner(System.in);
-    private final PrintStream userOut = System.out;
 
     /**
      * Конструктор по умолчанию.
@@ -209,7 +205,7 @@ public class App {
         var reminds = ServiceComponent.getRemindService().getUserReminds(userId);
 
         if (reminds.isEmpty()) {
-            userOut.println(String.format("У пользователя с ID %d нет напоминаний.", userId))
+            userOut.println(String.format("У пользователя с ID %d нет напоминаний.", userId));
             return;
         }
 
