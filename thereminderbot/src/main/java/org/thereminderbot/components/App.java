@@ -2,7 +2,7 @@ package org.thereminderbot.components;
 
 import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.components.service.ServiceComponent;
-
+import java.io.PrintStream;
 import java.util.*;
 
 public class App {
@@ -11,6 +11,9 @@ public class App {
     private final Set<String> commands;
 
     private final Scanner scanner = new Scanner(System.in);
+
+    private final Scanner scanner = new Scanner(System.in);
+    private final PrintStream userOut = System.out;
 
     /**
      * Конструктор по умолчанию.
@@ -33,6 +36,10 @@ public class App {
             String command = scanner.nextLine().trim().toLowerCase();
             handleMenuInput(command);
             System.out.println();
+            userOut.println("Введите команду: ");
+            String command = scanner.nextLine().trim().toLowerCase();
+            handleMenuInput(command);
+            userOut.println();
         }
     }
 
@@ -128,11 +135,52 @@ public class App {
         System.out.println("  /change_remind_text - Изменить текст напоминания");
         System.out.println("  /change_username [username]   - Изменить имя пользователя");
         System.out.println("  /help               - Эта справка");
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("|----------------------------------------|");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("|       Консольный TheReminderBot        |");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("|----------------------------------------|");
+        stringBuilder.append(System.lineSeparator());
+
+        stringBuilder.append(getHelpMessage());
+        userOut.println(stringBuilder.toString());
+    }
+
+
+    private String getHelpMessage() {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("Справка по использованию:");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("Доступные команды:");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /add_remind                    - Добавить напоминание");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /add_user                      - Добавить пользователя");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /delete_user [userId]          - Удалить пользователя");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /delete_remind [userId]        - Удалить напоминание");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /get_remind_info [remindId]    - Информация о напоминании");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /list_all_reminds              - Вывести все напоминания");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /change_remind_text [remindId] - Изменить текст напоминания");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /change_username [userId]      - Изменить имя пользователя");
+        stringBuilder.append(System.lineSeparator());
+        stringBuilder.append("  /help                          - Эта справка");
+
+        return stringBuilder.toString();
     }
 
     private void handleMenuInput(String input) {
         if (input == null || input.isEmpty()) {
             System.out.println("Ввод не можнт быть пустым.");
+            userOut.println("Ввод не можнт быть пустым.");
         }
 
         String[] inputArr = input.split(" ");
@@ -147,6 +195,7 @@ public class App {
             case "/delete_user":
                 if (inputArr.length <= 1) {
                     System.out.println(getMethodHelp(inputArr[0]));
+                    userOut.println(getMethodHelp(inputArr[0]));
                     break;
                 }
                 deleteUser(inputArr[1]);
@@ -154,6 +203,7 @@ public class App {
             case "/delete_remind":
                 if (inputArr.length <= 1) {
                     System.out.println(getMethodHelp(inputArr[0]));
+                    userOut.println(getMethodHelp(inputArr[0]));
                     break;
                 }
                 delete_remind(inputArr[1]);
@@ -161,6 +211,7 @@ public class App {
             case "/get_remind_info":
                 if (inputArr.length <= 1) {
                     System.out.println(getMethodHelp(inputArr[0]));
+                    userOut.println(getMethodHelp(inputArr[0]));
                     break;
                 }
                 getRemindInfo(inputArr[1]);
@@ -168,12 +219,14 @@ public class App {
             case "/get_user_info":
                 if (inputArr.length <= 1) {
                     System.out.println(getMethodHelp(inputArr[0]));
+                    userOut.println(getMethodHelp(inputArr[0]));
                     break;
                 }
                 getUserInfo(inputArr[1]);
                 break;
             case "/help":
                 printHelp();
+                userOut.println(getHelpMessage());
                 break;
             case "/list_all_reminds":
                 listAllReminds();
@@ -181,6 +234,7 @@ public class App {
             case "/list_users_reminds":
                 if (inputArr.length <= 1) {
                     System.out.println(getMethodHelp(inputArr[0]));
+                    userOut.println(getMethodHelp(inputArr[0]));
                     break;
                 }
                 listUsersReminds(inputArr[1]);
@@ -188,6 +242,7 @@ public class App {
             case "/change_remind_text":
                 if (inputArr.length <= 1) {
                     System.out.println(getMethodHelp(inputArr[0]));
+                    userOut.println(getMethodHelp(inputArr[0]));
                     break;
                 }
                 changeRemindText(inputArr[1]);
@@ -195,12 +250,14 @@ public class App {
             case "/change_username":
                 if (inputArr.length <= 1) {
                     System.out.println(getMethodHelp(inputArr[0]));
+                    userOut.println(getMethodHelp(inputArr[0]));
                     break;
                 }
                 changeUserName(inputArr[1]);
                 break;
             default:
                 System.out.println("Неизвестная команда. Введите /help");
+                userOut.println("Неизвестная команда. Введите /help");
                 break;
         }
     }
@@ -208,6 +265,8 @@ public class App {
         private String getMethodHelp (String method) {
         String prefix = "Использование команды: ";
         return prefix + switch (method) {
+            String prefix = "Использование команды: ";
+            return prefix + switch (method) {
                 case "/delete_user" -> "/delete_user [userId] - Id пользователя";
                 case "/delete_remind" -> "/delete_remind [remindId] - Id напоминания";
                 case "/get_user_info" -> "/get_user_info [userId] - Id пользователя";
