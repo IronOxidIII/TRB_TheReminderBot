@@ -16,20 +16,13 @@ public class ServiceComponent {
      */
     public ServiceComponent() {
         userService = new UserService();
-        remindService = new RemindService();
         remindService = new RemindService(new RemindRepository());
     }
 
-    /**
-     * Получить сервис пользователей.
-     */
     public UserService getUserService() {
         return userService;
     }
 
-    /**
-     * Получить сервис напоминаний.
-     */
     public RemindService getRemindService() {
         return remindService;
     }

@@ -4,6 +4,9 @@ import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.components.service.ServiceComponent;
 import java.io.PrintStream;
 import java.util.*;
+import java.time.OffsetDateTime;
+import java.time.Duration;
+import org.thereminderbot.domain.Remind;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
@@ -34,10 +37,6 @@ public class App {
             String command = scanner.nextLine().trim().toLowerCase();
             handleMenuInput(command);
             System.out.println();
-            userOut.println("Введите команду: ");
-            String command = scanner.nextLine().trim().toLowerCase();
-            handleMenuInput(command);
-            userOut.println();
         }
     }
 
@@ -135,7 +134,7 @@ public class App {
         long id = Long.parseLong(idStr);
 
         try {
-            ServiceComponent.getRemindService().deleteRemind(id);
+            serviceComponent.getRemindService().deleteRemind(id);
             userOut.println(String.format("Напоминание с ID %d удалено.", id));
         } catch (Exception e) {
             userOut.println("Не удалось удалить напоминание. Попробуйте позже.");
@@ -155,7 +154,7 @@ public class App {
         long remindId = Long.parseLong(idStr);
 
         try {
-            Remind remind = ServiceComponent.getRemindService().getRemind(remindId);
+            Remind remind = repositoryComponent.getRemindRepository().getRemindById(remindId);
 
             if (remind == null) {
                 userOut.println(String.format("Напоминание с ID %d не найдено.", remindId));
@@ -181,7 +180,7 @@ public class App {
      * Вывести все напомининия.
      */
     private void listAllReminds() {
-        var reminds = ServiceComponent.getRemindService().getAllReminds();
+        var reminds = repositoryComponent.getRemindRepository().getAll();
 
         if (reminds.isEmpty()) {
             userOut.println("Нет ни одного напоминания.");
@@ -205,7 +204,7 @@ public class App {
 
         long userId = Long.parseLong(idStr);
 
-        var reminds = ServiceComponent.getRemindService().getUserReminds(userId);
+        var reminds = repositoryComponent.getRemindRepository().getRemindsByUser(userId);
 
         if (reminds.isEmpty()) {
             userOut.println(String.format("У пользователя с ID %d нет напоминаний.", userId));
@@ -237,7 +236,7 @@ public class App {
         }
 
         try {
-            ServiceComponent.getRemindService().changeRemindText(remindId, newText);
+            serviceComponent.getRemindService().changeRemindText(remindId, newText);
             userOut.println("Текст напоминания обновлён.");
         } catch (Exception e) {
             userOut.println("Не удалось изменить текст напоминания. Попробуйте позже.");
@@ -397,21 +396,39 @@ public class App {
         }
     }
 
-        private String getMethodHelp (String method) {
+    private String getMethodHelp(String method) {
         String prefix = "Использование команды: ";
-        return prefix + switch (method) {
-            String prefix = "Использование команды: ";
-            return prefix + switch (method) {
-                case "/delete_user" -> "/delete_user [userId] - Id пользователя";
-                case "/delete_remind" -> "/delete_remind [remindId] - Id напоминания";
-                case "/get_user_info" -> "/get_user_info [userId] - Id пользователя";
-                case "/get_remind_info" -> "/get_remind_info [remindId] - Id напоминания";
-                case "/list_users_reminds" -> "/list_users_reminds [userId] - Id пользователя";
-                case "/change_remind_text" -> "/change_remind_text [remindId] - Id напоминания";
-                case "/change_username" -> "/change_username [userId] - Id пользователя";
-                default -> "Нет справки для данного метода.";
-            };
+        String help;
+
+        switch (method) {
+            case "/delete_user":
+                help = "/delete_user [userId] - Id пользователя";
+                break;
+            case "/delete_remind":
+                help = "/delete_remind [remindId] - Id напоминания";
+                break;
+            case "/get_user_info":
+                help = "/get_user_info [userId] - Id пользователя";
+                break;
+            case "/get_remind_info":
+                help = "/get_remind_info [remindId] - Id напоминания";
+                break;
+            case "/list_users_reminds":
+                help = "/list_users_reminds [userId] - Id пользователя";
+                break;
+            case "/change_remind_text":
+                help = "/change_remind_text [remindId] - Id напоминания";
+                break;
+            case "/change_username":
+                help = "/change_username [userId] - Id пользователя";
+                break;
+            default:
+                help = "Нет справки для данной команды.";
+                break;
         }
+
+        return prefix + help;
+    }
 
         private void initializeCommands () {
             commands.add("/add_remind");
