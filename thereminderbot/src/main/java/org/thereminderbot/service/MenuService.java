@@ -1,3 +1,7 @@
+package org.thereminderbot.service;
+import org.thereminderbot.repository.UserRepository;
+
+
 public class MenuService {
     private final UserRepository userRepository;
 
