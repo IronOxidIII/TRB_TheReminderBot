@@ -5,10 +5,15 @@ import org.thereminderbot.components.service.ServiceComponent;
 
 import java.io.PrintStream;
 import java.util.*;
+import java.time.OffsetDateTime;
+import java.time.Duration;
+import org.thereminderbot.domain.Remind;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
     private final ServiceComponent serviceComponent;
+    private final Scanner scanner = new Scanner(System.in);
+    private final PrintStream userOut = System.out;
 
     /**
      * Конструктор по умолчанию.
@@ -16,8 +21,6 @@ public class App {
     public App() {
         repositoryComponent = new RepositoryComponent();
         serviceComponent = new ServiceComponent();
-        commands = new HashSet<>();
-        initializeCommands();
     }
 
     /**
@@ -27,10 +30,6 @@ public class App {
         printWelcome();
 
         while (true) {
-            System.out.print("Введите команду: ");
-            String command = scanner.nextLine().trim().toLowerCase();
-            handleMenuInput(command);
-            System.out.println();
             userOut.println("Введите команду: ");
             String command = scanner.nextLine().trim().toLowerCase();
             handleMenuInput(command);
@@ -132,7 +131,7 @@ public class App {
         long id = Long.parseLong(idStr);
 
         try {
-            ServiceComponent.getRemindService().deleteRemind(id);
+            serviceComponent.getRemindService().deleteRemind(id);
             userOut.println(String.format("Напоминание с ID %d удалено.", id));
         } catch (Exception e) {
             userOut.println("Не удалось удалить напоминание. Попробуйте позже.");
@@ -152,7 +151,7 @@ public class App {
         long remindId = Long.parseLong(idStr);
 
         try {
-            Remind remind = ServiceComponent.getRemindService().getRemind(remindId);
+            Remind remind = repositoryComponent.getRemindRepository().getRemindById(remindId);
 
             if (remind == null) {
                 userOut.println(String.format("Напоминание с ID %d не найдено.", remindId));
@@ -178,7 +177,7 @@ public class App {
      * Вывести все напомининия.
      */
     private void listAllReminds() {
-        var reminds = ServiceComponent.getRemindService().getAllReminds();
+        var reminds = repositoryComponent.getRemindRepository().getAll();
 
         if (reminds.isEmpty()) {
             userOut.println("Нет ни одного напоминания.");
@@ -202,7 +201,7 @@ public class App {
 
         long userId = Long.parseLong(idStr);
 
-        var reminds = ServiceComponent.getRemindService().getUserReminds(userId);
+        var reminds = repositoryComponent.getRemindRepository().getRemindsByUser(userId);
 
         if (reminds.isEmpty()) {
             userOut.println(String.format("У пользователя с ID %d нет напоминаний.", userId));
@@ -234,7 +233,7 @@ public class App {
         }
 
         try {
-            ServiceComponent.getRemindService().changeRemindText(remindId, newText);
+            serviceComponent.getRemindService().changeRemindText(remindId, newText);
             userOut.println("Текст напоминания обновлён.");
         } catch (Exception e) {
             userOut.println("Не удалось изменить текст напоминания. Попробуйте позже.");
