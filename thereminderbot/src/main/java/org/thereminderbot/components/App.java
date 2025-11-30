@@ -4,6 +4,7 @@ import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.components.service.ServiceComponent;
 
 import java.io.PrintStream;
+import java.time.ZoneId;
 import java.util.*;
 
 import org.slf4j.Logger;
@@ -53,17 +54,28 @@ public class App {
         try {
             userOut.print("Введите имя пользователя: ");
             String name = scanner.nextLine().trim();
+            userOut.print("Введите часовой пояс пользователя: ");
+            String tz = scanner.nextLine().trim();
 
             if (name.isEmpty()) {
                 userOut.println("Имя пользователя не может быть пустым.");
                 return;
             }
 
-            User user = new User(name);
+            if (tz.isEmpty()) {
+                userOut.println("Часовой пояс пользователя не может быть пустым.");
+                return;
+            }
+
+            long id = User.generateId();
+            int menu = User.getDefaultMenuId();
+            ZoneId zone = ZoneId.of(tz);
+            User user = new User(id, name, zone, menu);
+
             repositoryComponent.getUserRepository().addUser(user);
             userOut.println(String.format(
                     "Пользователь '%s' добавлен с ID %d",
-                    name, user.getUserId()
+                    name, id
             ));
         } catch (Exception e) {
             userOut.println(String.format(
@@ -75,7 +87,7 @@ public class App {
 
     /**
      * Удалить пользователя.
-     * @param id - строка с id пользователя.
+     * @param idStr - строка с id пользователя.
      */
     private void deleteUser(String idStr) {
         if (!ParsingHelper.isId(idStr)) {
@@ -86,7 +98,7 @@ public class App {
         long userId = Long.parseLong(idStr);
 
         try {
-            ServiceComponent.getUserService().deleteUserAndReminds(userId);
+            repositoryComponent.getUserRepository().deleteUser(userId);
             userOut.println(String.format(
                     "Пользователь с ID %d и его напоминания удалены.",
                     userId
@@ -127,7 +139,7 @@ public class App {
         long userId = Long.parseLong(idStr);
 
         try {
-            ServiceComponent.getUserService().printUserInfo(userId);
+            serviceComponent.getUserService().printUserInfo(userId);
         } catch (IllegalArgumentException e) {
             userOut.println(String.format(
                     "Ошибка при получении информации о пользователе: %s",
@@ -155,7 +167,7 @@ public class App {
         long userId = Long.parseLong(idStr);
 
         try {
-            ServiceComponent.getUserService().printUsersReminds(userId);
+            serviceComponent.getUserService().printUsersReminds(userId);
         } catch (IllegalArgumentException e) {
             userOut.println(String.format(
                     "Ошибка при выводе напоминаний пользователя: %s",
