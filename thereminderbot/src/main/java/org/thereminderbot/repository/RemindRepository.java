@@ -19,6 +19,7 @@ public class RemindRepository {
         this.reminds = new ArrayList<>();
     }
 
+<<<<<<< Updated upstream
     /**
      * Возвращает копию списка всех напоминаний, сохранённых в репозитории.
      *
@@ -38,6 +39,10 @@ public class RemindRepository {
         for (var r : reminds) {
             if (r.getId() == remindId) return r;
         }
+=======
+    public Remind getRemindById(long id) {
+        //TODO
+>>>>>>> Stashed changes
         return null;
     }
 
@@ -67,6 +72,7 @@ public class RemindRepository {
         reminds.add(remind);
     }
 
+<<<<<<< Updated upstream
     /**
      * Удаляет напоминание по ID.
      * @param ID напоминания, которое нужно удалить.
@@ -91,3 +97,10 @@ public class RemindRepository {
         }
     }
 }
+=======
+    public void deleteRemindsByUserId(Long userId){
+        //TODO
+        return;
+    }
+}
+>>>>>>> Stashed changes

@@ -12,8 +12,8 @@ import java.util.List;
 
 public class UserService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
-    private UserRepository userRepository;
-    private RemindRepository remindRepository;
+    private final UserRepository userRepository;
+    private  final RemindRepository remindRepository;
 
     public UserService(UserRepository userRepository, RemindRepository remindRepository) {
         this.userRepository = userRepository;
@@ -39,7 +39,7 @@ public class UserService {
     public void printUsersReminds(long userId) {
         try {
             User user = userRepository.getUserById(userId);
-            List<Remind> reminds = remindRepository.getRemindsByUser(user.getUserId());
+            List<Remind> reminds = remindRepository.getRemindsByUser(user);
             if (reminds.isEmpty()) {
                 log.info("У пользователя {} нет напоминаний.", user.getUserName());
                 return;
@@ -88,10 +88,10 @@ public class UserService {
             Часовой пояс: %d
             Текущее меню: %s
             """.formatted(
-                    user.getUserId(),
-                    user.getUserName(),
-                    user.getTimeZoneOffset(),
-                    UserMenu.values()[user.getCurrentMenuId()]
+                    userRepository.getUserById(userId).getUserId(),
+                    userRepository.getUserById(userId).getUserName(),
+                    userRepository.getUserById(userId).getTimeZoneOffset(),
+                    UserMenu.values()[userRepository.getUserById(userId).getCurrentMenuId()]
             );
             log.info("Информация о пользователе:\n{}", userInfo);
         } catch (IllegalArgumentException e) {
@@ -111,6 +111,7 @@ public class UserService {
             remindRepository.deleteRemindsByUserId(userId);
             userRepository.deleteUser(userId);
         } catch (IllegalArgumentException e) {
-            log.warn("Ошибка при удалении пользователя"};
+            log.warn("Ошибка при удалении пользователя");
+        }
     }
 }

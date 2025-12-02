@@ -1,5 +1,7 @@
 package org.thereminderbot.service;
 import org.thereminderbot.repository.UserRepository;
+import org.thereminderbot.enums.UserMenu;
+import org.thereminderbot.domain.User;
 
 
 public class MenuService {
