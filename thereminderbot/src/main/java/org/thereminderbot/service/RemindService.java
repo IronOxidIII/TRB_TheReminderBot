@@ -1,9 +1,6 @@
 package org.thereminderbot.service;
 import org.thereminderbot.enums.RemindStatus;
-import org.thereminderbot.domain.Remind;
 import org.thereminderbot.repository.RemindRepository;
-import java.util.ArrayList;
-import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

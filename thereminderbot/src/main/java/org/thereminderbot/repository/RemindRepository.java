@@ -1,7 +1,6 @@
 package org.thereminderbot.repository;
 
 import org.thereminderbot.domain.Remind;
-import org.thereminderbot.domain.User;
 
 import java.util.List;
 import java.util.ArrayList;
