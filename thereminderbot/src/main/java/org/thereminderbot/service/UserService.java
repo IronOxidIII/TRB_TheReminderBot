@@ -38,13 +38,12 @@ public class UserService {
      */
     public void printUsersReminds(long userId) {
         try {
-            User user = userRepository.getUserById(userId);
-            List<Remind> reminds = remindRepository.getRemindsByUser(user);
+            List<Remind> reminds = remindRepository.getRemindsByUser(userId);
             if (reminds.isEmpty()) {
-                log.info("У пользователя {} нет напоминаний.", user.getUserName());
+                log.info("У пользователя с id {} нет напоминаний.", userId);
                 return;
             }
-            log.info("Напоминания пользователя {}:", user.getUserName());
+            log.info("Напоминания пользователя с id {}:", userId);
             for (Remind r : reminds) {
                 log.info("ID: {}, Текст: {}", r.getId(), r.getText());
             }
@@ -60,7 +59,7 @@ public class UserService {
         try {
             User fromUser = userRepository.getUserById(userIdFrom);
             User toUser = userRepository.getUserById(userIdTo);
-            List<Remind> fromReminds = remindRepository.getRemindsByUser(fromUser);
+            List<Remind> fromReminds = remindRepository.getRemindsByUser(userIdFrom);
             if (fromReminds.isEmpty()) {
                 log.info("У пользователя {} нет напоминаний для передачи", fromUser.getUserName());
                 return;

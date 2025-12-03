@@ -56,7 +56,7 @@ public class Main {
         userRepository.addUser(user2);
 
         var userService = new UserService(userRepository, remindRepository);
-        var remindService = new RemindService();
+        var remindService = new RemindService(remindRepository);
 
         System.out.println("Заметки первого пользователя:");
         userService.printUsersReminds(user1.getUserId());
@@ -77,17 +77,12 @@ public class Main {
         userService.printUsersReminds(user1.getUserId());
         userService.printUsersReminds(user2.getUserId());
 
-        System.out.println("Выводим все напоминания:");
-        remindService.printAllReminds();
-
         System.out.println("Пользователь один выключает напоминание 1");
         remindService.switchOffRemind(remind1.getId());
 
         System.out.println("Пользователь два меняет текст напоминания 4");
-        remindService.changeRemindText(remind4.getId());
+        remindService.changeRemindText(remind4.getId(), "New text.");
 
-        System.out.println("Пользователь два выводит информацию о заметке 4");
-        remindService.printRemindInfo(remind4.getId());
         return;
     }
 }
