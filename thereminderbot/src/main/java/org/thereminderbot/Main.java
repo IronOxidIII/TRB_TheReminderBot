@@ -7,6 +7,8 @@ import org.thereminderbot.repository.RemindRepository;
 import org.thereminderbot.repository.UserRepository;
 import org.thereminderbot.service.RemindService;
 import org.thereminderbot.service.UserService;
+import org.thereminderbot.service.MenuService;
+import java.time.Duration;
 
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
@@ -25,25 +27,25 @@ public class Main {
                 "Switch light off",
                 user1.getUserId(),
                 OffsetDateTime.now(),
-                LocalTime.of(10, 30));
+                Duration.between(LocalTime.of(0, 0), LocalTime.of(1, 0)));
 
         var remind2 = new Remind(2,
                 "Switch oven off",
                 user1.getUserId(),
                 OffsetDateTime.now(),
-                LocalTime.of(1, 0));
+                Duration.ofHours(1));
 
         var remind3 = new Remind(2,
                 "Walkout dog",
                 user2.getUserId(),
                 OffsetDateTime.now(),
-                LocalTime.of(4, 30));
+                Duration.ofHours(4).plusMinutes(30));
 
         var remind4 = new Remind(2,
                 "Walkout cat",
                 user2.getUserId(),
                 OffsetDateTime.now(),
-                LocalTime.of(23, 0));
+                Duration.ofHours(23));
 
         remindRepository.addRemind(remind1);
         remindRepository.addRemind(remind2);
@@ -53,8 +55,8 @@ public class Main {
         userRepository.addUser(user1);
         userRepository.addUser(user2);
 
-        var userService = new UserService();
-        var remindService = new RemindService();
+        var userService = new UserService(userRepository, remindRepository);
+        var remindService = new RemindService(remindRepository);
 
         System.out.println("Заметки первого пользователя:");
         userService.printUsersReminds(user1.getUserId());
@@ -66,7 +68,8 @@ public class Main {
         userService.notifyUser(user1.getUserId(), remind1.getId());
 
         System.out.println("Пользователь два переходит в меню настройки");
-        userService.turnOnMenu(user2.getUserId(), UserMenu.RemindCreate);
+        MenuService menuService = new MenuService(userRepository);
+        menuService.turnOnMenu(user2.getUserId(), UserMenu.RemindCreate);
         userService.printUserInfo(user2.getUserId());
 
         System.out.println("Пользователи один делится напоминаниями с пользователем два");
@@ -74,17 +77,12 @@ public class Main {
         userService.printUsersReminds(user1.getUserId());
         userService.printUsersReminds(user2.getUserId());
 
-        System.out.println("Выводим все напоминания:");
-        remindService.printAllReminds();
-
         System.out.println("Пользователь один выключает напоминание 1");
         remindService.switchOffRemind(remind1.getId());
 
         System.out.println("Пользователь два меняет текст напоминания 4");
-        remindService.changeRemindText(remind4.getId());
+        remindService.changeRemindText(remind4.getId(), "New text.");
 
-        System.out.println("Пользователь два выводит информацию о заметке 4");
-        remindService.printRemindInfo(remind4.getId());
         return;
     }
 }

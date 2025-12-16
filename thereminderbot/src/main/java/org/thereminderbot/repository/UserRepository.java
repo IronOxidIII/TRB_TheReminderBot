@@ -1,34 +1,47 @@
 package org.thereminderbot.repository;
 
 import org.thereminderbot.domain.User;
+import org.thereminderbot.domain.Remind;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
- * Репозиторий пользователя.
+ * Репозиторий пользователя
  */
 public class UserRepository {
     private ArrayList<User> users;
 
     public UserRepository() {
-        //TODO
-        return;
+        this.users = new ArrayList<>();
     }
 
+    /**
+     * Получить пользователя по id
+     */
     public User getUserById(long id) {
-        //TODO
-        return null;
+        for (User user : users) {
+            if (user.getUserId() == id) {
+                return user;
+            }
+        }
+        throw new IllegalArgumentException(String.format("Пользователь с id %d не найден.", id));
     }
 
+    /**
+     * Добавить пользователя
+     */
     public void addUser(User user) {
-        //TODO
-        return;
+        users.add(user);
     }
 
+    /**
+     * Удалить пользователя по id
+     */
     public void deleteUser(long id) {
-        //TODO
-        // Прошу обратить внимание, при удалении пользователя нам нужно удалить все его заметки.
-        return;
+        User user = getUserById(id);
+        if (user == null) {
+            throw new IllegalArgumentException(String.format("Пользователь с id %d не найден.", id));
+        }
+        users.remove(user);
     }
 }
