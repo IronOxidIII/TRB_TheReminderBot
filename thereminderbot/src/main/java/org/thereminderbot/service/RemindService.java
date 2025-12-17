@@ -1,9 +1,6 @@
 package org.thereminderbot.service;
 import org.thereminderbot.enums.RemindStatus;
-import org.thereminderbot.domain.Remind;
 import org.thereminderbot.repository.RemindRepository;
-import java.util.ArrayList;
-import java.util.Scanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,22 +31,22 @@ public class RemindService {
         log.warn("Напоминание с ID {} не найдено.", remindId);
     }
 
-/**
- * Изменить текст напоминания.
- * @param ID напоминания.
- * @param newText  напоминания.
- * @throws IllegalArgumentException если напоминание с таким ID не найдено.
- */
-public void changeRemindText(long remindId, String newText) {
-    var remind = remindRepository.getRemindById(remindId);
+    /**
+     * Изменить текст напоминания.
+     * @param remindId - id напоминания.
+     * @param newText - новый текст напоминания.
+     * @throws IllegalArgumentException если напоминание с таким ID не найдено.
+     */
+    public void changeRemindText(long remindId, String newText) {
+        var remind = remindRepository.getRemindById(remindId);
 
-    if (remind == null) {
-        log.warn("Напоминание с ID {} не найдено.", remindId);
-        throw new IllegalArgumentException("Напоминание с ID " + remindId + " не найдено.");
+        if (remind == null) {
+            log.warn("Напоминание с ID {} не найдено.", remindId);
+            throw new IllegalArgumentException("Напоминание с ID " + remindId + " не найдено.");
+        }
+        remind.setText(newText);
+        log.info("Текст напоминания для ID {} успешно изменён.", remindId);
     }
-    remind.setText(newText);
-    log.info("Текст напоминания для ID {} успешно изменён.", remindId);
-}
 
     public void deleteRemind(long remindId) {
         try {
