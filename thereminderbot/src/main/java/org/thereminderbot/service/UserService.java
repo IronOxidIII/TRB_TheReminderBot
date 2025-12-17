@@ -80,17 +80,18 @@ public class UserService {
      */
     public void printUserInfo(long userId) {
         try {
+            User user = userRepository.getUserById(userId);
             String userInfo = """
             Информация о пользователе:
             ID: %d
             Имя: %s
-            Часовой пояс: %d
+            Часовой пояс: %s
             Текущее меню: %s
             """.formatted(
-                    userRepository.getUserById(userId).getUserId(),
-                    userRepository.getUserById(userId).getUserName(),
-                    userRepository.getUserById(userId).getTimeZoneOffset(),
-                    UserMenu.values()[userRepository.getUserById(userId).getCurrentMenuId()]
+                    user.getUserId(),
+                    user.getUserName(),
+                    user.getTimeZoneOffset(),
+                    user.getCurrentMenu().toString()
             );
             log.info("Информация о пользователе:\n{}", userInfo);
         } catch (IllegalArgumentException e) {

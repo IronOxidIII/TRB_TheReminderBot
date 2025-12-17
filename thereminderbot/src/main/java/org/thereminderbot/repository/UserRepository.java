@@ -44,4 +44,17 @@ public class UserRepository {
         }
         users.remove(user);
     }
+
+    public User getUserBySession(long session) {
+        for (var user : users) {
+            if (user.getChatId() == session) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    public long getNextId() {
+        return users.size();
+    }
 }

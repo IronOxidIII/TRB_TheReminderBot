@@ -1,5 +1,7 @@
 package org.thereminderbot.domain;
 
+import org.thereminderbot.enums.UserMenu;
+
 import java.time.ZoneId;
 
 /**
@@ -10,11 +12,6 @@ public class User {
      * Уникальный идентификатор пользователя.
      */
     private long userId;
-
-    /**
-     * Вспомогательное значение для определения идентификатора следующего пользователя.
-     */
-    private static long nextId = 1;
 
     /**
      * Имя пользователя.
@@ -30,18 +27,18 @@ public class User {
      * Меню, в котором находится пользователь.
      * @see org.thereminderbot.enums.UserMenu
      */
-    private int currentMenuId;
+    private UserMenu currentMenu;
 
     /**
      * Меню по умолчанию.
      */
-    private static int defaultMenuId;
+    private static UserMenu defaultMenu = UserMenu.MainPage;
 
-    public User(long userId, String userName, ZoneId timeZoneOffset, int currentMenuId) {
+    public User(long userId, String userName, ZoneId timeZoneOffset, UserMenu currentMenu) {
         this.userId = userId;
         this.userName = userName;
         this.timeZoneOffset = timeZoneOffset;
-        this.currentMenuId = currentMenuId;
+        this.currentMenu = currentMenu;
     }
 
     /**
@@ -94,28 +91,25 @@ public class User {
 
     /**
      * Получить id меню пользователя по {@link org.thereminderbot.enums.UserMenu}.
-     * @return Число - id меню пользователя.
+     * @return Меню пользователя.
      */
-    public int getCurrentMenuId() {
-        return currentMenuId;
+    public UserMenu getCurrentMenu() {
+        return currentMenu;
     }
 
     /**
      * Назначить новое меню пользователю по {@link org.thereminderbot.enums.UserMenu}.
-     * @param menuId Число - новое id меню пользователя.
+     * @param menu Новое меню пользователя.
      */
-    public void setCurrentMenuId(int menuId) {
-        this.currentMenuId = menuId;
+    public void setCurrentMenu(UserMenu menu) {
+        this.currentMenu = menu;
     }
 
     /**
-     * nextID каждый раз увеличивается на 1 при добавлении нового пользователя.
+     * Получить сессию пользователя.
+     * @return long - сессия пользователя.
      */
-    public static long generateId() {
-        return nextId++;
-    }
-
-    public static int getDefaultMenuId() {
-        return defaultMenuId;
+    public void setCurrentMenuId(int menuId) {
+        this.currentMenuId = menuId;
     }
 }
