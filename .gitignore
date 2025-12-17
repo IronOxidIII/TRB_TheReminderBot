@@ -5,6 +5,7 @@ target/
 !**/src/test/**/target/
 .kotlin
 **.html
+.idea
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
