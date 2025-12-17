@@ -8,6 +8,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.Duration;
 import org.thereminderbot.domain.Remind;
+import org.thereminderbot.components.service.NotificationService;
+import org.thereminderbot.components.service.NotificationBuffer;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
@@ -15,13 +17,24 @@ public class App {
 
     private final Scanner scanner = new Scanner(System.in);
     private final PrintStream userOut = System.out;
-
+    private final NotificationService notificationService;
+    private final NotificationBuffer notificationBuffer;
     /**
      * Конструктор по умолчанию.
      */
     public App() {
         repositoryComponent = new RepositoryComponent();
         serviceComponent = new ServiceComponent();
+        notificationBuffer = new NotificationBuffer();
+
+        notificationService = new NotificationService(
+                repositoryComponent.getRemindRepository(),
+                notificationBuffer
+        );
+
+        notificationService.start();
+
+        startNotificationListener(notificationBuffer);
     }
 
     /**
@@ -469,5 +482,22 @@ public class App {
             }
             return Long.parseLong(idStr);
         }
+    }
+    private void handleNotification(Remind remind) {
+        userOut.println(
+                String.format(
+                        "Напоминание для пользователя %d: %s",
+                        remind.getUserId(),
+                        remind.getText()
+                )
+        );
+    }
+    private void startNotificationListener(NotificationBuffer buffer) {
+        new Thread(() -> {
+            while (true) {
+                Remind remind = buffer.take();
+                handleNotification(remind);
+            }
+        }).start();
     }
 }
