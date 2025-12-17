@@ -50,52 +50,55 @@ public class App {
     /**
      * Добавить пользователя.
      */
+    private static long nextUserId = 1;
+
     private void addUser() {
         try {
             userOut.print("Введите имя пользователя: ");
             String name = scanner.nextLine().trim();
-            userOut.print("Введите часовой пояс пользователя: ");
-            String tz = scanner.nextLine().trim();
-
             if (name.isEmpty()) {
                 userOut.println("Имя пользователя не может быть пустым.");
                 return;
             }
 
-            if (tz.isEmpty()) {
+            userOut.print("Введите часовой пояс пользователя (например, Europe/Moscow): ");
+            String tzInput = scanner.nextLine().trim();
+            if (tzInput.isEmpty()) {
                 userOut.println("Часовой пояс пользователя не может быть пустым.");
                 return;
             }
 
-            long id = User.generateId();
-            int menu = User.getDefaultMenuId();
-            ZoneId zone = ZoneId.of(tz);
-            User user = new User(id, name, zone, menu);
+            ZoneId zone;
+            try {
+                zone = ZoneId.of(tzInput);
+            } catch (Exception e) {
+                userOut.println("Некорректный часовой пояс: " + tzInput);
+                return;
+            }
+
+            long id = nextUserId++;
+            int defaultMenu = 0;
+            User user = new User(id, name, zone, defaultMenu);
 
             repositoryComponent.getUserRepository().addUser(user);
-            userOut.println(String.format(
-                    "Пользователь '%s' добавлен с ID %d",
-                    name, id
-            ));
+            userOut.println(String.format("Пользователь '%s' добавлен с ID %d", name, id));
+
         } catch (Exception e) {
-            userOut.println(String.format(
-                    "Ошибка при добавлении пользователя: %s",
-                    e.getMessage()
-            ));
+            userOut.println("Ошибка при добавлении пользователя: " + e.getMessage());
         }
     }
+
 
     /**
      * Удалить пользователя.
      * @param idStr - строка с id пользователя.
      */
     private void deleteUser(String idStr) {
-        if (!ParsingHelper.isId(idStr)) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
             userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
             return;
         }
-
-        long userId = Long.parseLong(idStr);
 
         try {
             repositoryComponent.getUserRepository().deleteUser(userId);
@@ -131,12 +134,11 @@ public class App {
      * Напечатать информацию о пользователе.
      */
     private void getUserInfo(String idStr) {
-        if (!ParsingHelper.isId(idStr)) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
             userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
             return;
         }
-
-        long userId = Long.parseLong(idStr);
 
         try {
             serviceComponent.getUserService().printUserInfo(userId);
@@ -159,12 +161,11 @@ public class App {
      * Напечатать все напоминания пользователя.
      */
     private void listUsersReminds(String idStr) {
-        if (!ParsingHelper.isId(idStr)) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
             userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
             return;
         }
-
-        long userId = Long.parseLong(idStr);
 
         try {
             serviceComponent.getUserService().printUsersReminds(userId);
@@ -187,12 +188,11 @@ public class App {
      * Изменить имя пользователя.
      */
     private void changeUserName(String idStr) {
-        if (!ParsingHelper.isId(idStr)) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
             userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
             return;
         }
-
-        long userId = Long.parseLong(idStr);
 
         try {
             User user = repositoryComponent.getUserRepository().getUserById(userId);
@@ -363,6 +363,13 @@ public class App {
             }
 
             return true;
+        }
+
+        static long parseId(String idStr) {
+            if (!isId(idStr)) {
+                return -1;
+            }
+            return Long.parseLong(idStr);
         }
     }
 }
