@@ -4,6 +4,7 @@ import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.repository.RemindRepository;
 import org.thereminderbot.repository.UserRepository;
 import org.thereminderbot.repository.TagRepository;
+import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.service.RemindService;
 import org.thereminderbot.service.UserService;
 import org.thereminderbot.service.TagService;
