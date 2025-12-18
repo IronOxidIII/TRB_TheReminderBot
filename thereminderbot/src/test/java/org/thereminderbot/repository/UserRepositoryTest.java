@@ -33,7 +33,7 @@ class UserRepositoryTest {
                 () -> userRepository.getUserById(99L)
         );
 
-        assertTrue(exception.getMessage().contains("νε νΰιδεν"));
+        assertTrue(exception.getMessage().contains("Π½Πµ Π½Π°ΠΉΠ΄ΠµΠ½"));
     }
 
     @Test
@@ -53,6 +53,6 @@ class UserRepositoryTest {
                 () -> userRepository.deleteUser(99L)
         );
 
-        assertTrue(exception.getMessage().contains("νε νΰιδεν"));
+        assertTrue(exception.getMessage().contains("Π½Πµ Π½Π°ΠΉΠ΄ΠµΠ½"));
     }
 }
