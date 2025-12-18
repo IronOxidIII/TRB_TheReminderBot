@@ -38,19 +38,25 @@ class UserServiceTest {
         when(userRepository.getUserById(1L)).thenReturn(user);
         when(remindRepository.getRemindById(10L)).thenReturn(remind);
 
-        userService.notifyUser(1L, 10L);
+        assertDoesNotThrow(() -> userService.notifyUser(1L, 10L));
 
         verify(userRepository, times(1)).getUserById(1L);
         verify(remindRepository, times(1)).getRemindById(10L);
     }
 
+
+
     @Test
     void notifyUser_shouldHandleExceptionIfUserNotFound() {
-        when(userRepository.getUserById(99L)).thenThrow(new IllegalArgumentException("not found."));
+        when(userRepository.getUserById(99L))
+                .thenThrow(new IllegalArgumentException("User not found"));
 
         assertDoesNotThrow(() -> userService.notifyUser(99L, 1L));
+
         verify(userRepository, times(1)).getUserById(99L);
+        verify(remindRepository, never()).getRemindById(anyLong());
     }
+
 
     @Test
     void printUsersReminds_shouldPrintRemindsIfExist() {
@@ -60,19 +66,21 @@ class UserServiceTest {
 
         when(remindRepository.getRemindsByUser(1L)).thenReturn(reminds);
 
-        userService.printUsersReminds(1L);
+        assertDoesNotThrow(() -> userService.printUsersReminds(1L));
 
         verify(remindRepository, times(1)).getRemindsByUser(1L);
     }
+
 
     @Test
     void printUsersReminds_shouldHandleEmptyReminds() {
         when(remindRepository.getRemindsByUser(1L)).thenReturn(new ArrayList<>());
 
-        userService.printUsersReminds(1L);
+        assertDoesNotThrow(() -> userService.printUsersReminds(1L));
 
         verify(remindRepository, times(1)).getRemindsByUser(1L);
     }
+
 
     @Test
     void shareReminds_shouldCopyRemindsToAnotherUser() {
@@ -85,51 +93,75 @@ class UserServiceTest {
         when(userRepository.getUserById(2L)).thenReturn(userTo);
         when(remindRepository.getRemindsByUser(1L)).thenReturn(fromReminds);
 
-        userService.shareReminds(1L, 2L);
+        assertDoesNotThrow(() -> userService.shareReminds(1L, 2L));
 
         verify(remindRepository, times(1)).getRemindsByUser(1L);
-        verify(remindRepository, times(1)).addRemind(any(Remind.class));
+        verify(remindRepository, times(1)).addRemind(argThat(r ->
+                r.getText().equals(remind.getText()) &&
+                        r.getUserId() == 2L &&
+                        r.getTime().equals(remind.getTime()) &&
+                        r.getFrequencyOfRepetition().equals(remind.getFrequencyOfRepetition()) &&
+                        r.getStatus() == remind.getStatus()
+        ));
     }
 
     @Test
     void shareReminds_shouldHandleNoReminds() {
-        User userFrom = new User(1L, "Abc", ZoneId.of("UTC"), 0);
-        User userTo = new User(2L, "Bca", ZoneId.of("UTC"), 0);
+        User userFrom = new User(1L, "UserFrom", ZoneId.of("UTC"), 0);
+        User userTo = new User(2L, "UserTo", ZoneId.of("UTC"), 0);
 
         when(userRepository.getUserById(1L)).thenReturn(userFrom);
         when(userRepository.getUserById(2L)).thenReturn(userTo);
+
         when(remindRepository.getRemindsByUser(1L)).thenReturn(new ArrayList<>());
 
-        userService.shareReminds(1L, 2L);
+        assertDoesNotThrow(() -> userService.shareReminds(1L, 2L));
 
+        verify(userRepository, times(1)).getUserById(1L);
+        verify(userRepository, times(1)).getUserById(2L);
         verify(remindRepository, times(1)).getRemindsByUser(1L);
         verify(remindRepository, never()).addRemind(any());
     }
+
 
     @Test
     void printUserInfo_shouldCallRepository() {
         User user = new User(1L, "Abc", ZoneId.of("UTC"), 0);
         when(userRepository.getUserById(1L)).thenReturn(user);
 
-        userService.printUserInfo(1L);
+        assertDoesNotThrow(() -> userService.printUserInfo(1L));
 
         verify(userRepository, times(1)).getUserById(1L);
     }
+
 
     @Test
     void deleteUserAndReminds_shouldCallRepositories() {
         doNothing().when(remindRepository).deleteRemindsByUserId(1L);
         doNothing().when(userRepository).deleteUser(1L);
 
-        userService.deleteUserAndReminds(1L);
+        assertDoesNotThrow(() -> userService.deleteUserAndReminds(1L));
 
         verify(remindRepository, times(1)).deleteRemindsByUserId(1L);
         verify(userRepository, times(1)).deleteUser(1L);
     }
 
+
     @Test
     void deleteUserAndReminds_shouldThrowExceptionIfInvalidId() {
-        assertThrows(IllegalArgumentException.class, () -> userService.deleteUserAndReminds(0));
-        assertThrows(IllegalArgumentException.class, () -> userService.deleteUserAndReminds(-5));
+        IllegalArgumentException exceptionZero = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.deleteUserAndReminds(0)
+        );
+        assertEquals("Invalid user ID", exceptionZero.getMessage());
+
+        IllegalArgumentException exceptionNegative = assertThrows(
+                IllegalArgumentException.class,
+                () -> userService.deleteUserAndReminds(-5)
+        );
+        assertEquals("Invalid user ID", exceptionNegative.getMessage());
+
+        verifyNoInteractions(remindRepository, userRepository);
     }
+
 }

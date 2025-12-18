@@ -27,9 +27,9 @@ public class UserService {
         try {
             User user = userRepository.getUserById(userId);
             Remind remind = remindRepository.getRemindById(remindId);
-            log.info("Уведомление для пользователя {}: {}", user.getUserName(), remind.getText());
+            log.info("Notification for user {}: {}", user.getUserName(), remind.getText());
         } catch (IllegalArgumentException e) {
-            log.warn("Ошибка уведомления пользователя: {}", e.getMessage());
+            log.warn("Failed to notify user {}: {}", userId, e.getMessage());
         }
     }
 
@@ -104,7 +104,7 @@ public class UserService {
     public void deleteUserAndReminds(long userId) {
         if (userId <= 0) {
             log.warn("Попытка удаления с невалидным ID пользователя: {}", userId);
-            throw new IllegalArgumentException("Невалидный ID пользователя");
+            throw new IllegalArgumentException("Invalid user ID");
         }
         try {
             remindRepository.deleteRemindsByUserId(userId);
