@@ -33,7 +33,7 @@ class UserRepositoryTest {
                 () -> userRepository.getUserById(99L)
         );
 
-        assertTrue(exception.getMessage().contains("не найден"));
+        assertTrue(exception.getMessage().contains("not found"));
     }
 
     @Test
@@ -53,6 +53,6 @@ class UserRepositoryTest {
                 () -> userRepository.deleteUser(99L)
         );
 
-        assertTrue(exception.getMessage().contains("не найден"));
+        assertTrue(exception.getMessage().contains("not found"));
     }
 }
