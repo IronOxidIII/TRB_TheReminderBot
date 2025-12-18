@@ -46,7 +46,7 @@ class UserServiceTest {
 
     @Test
     void notifyUser_shouldHandleExceptionIfUserNotFound() {
-        when(userRepository.getUserById(99L)).thenThrow(new IllegalArgumentException("not found"));
+        when(userRepository.getUserById(99L)).thenThrow(new IllegalArgumentException("not found."));
 
         assertDoesNotThrow(() -> userService.notifyUser(99L, 1L));
         verify(userRepository, times(1)).getUserById(99L);

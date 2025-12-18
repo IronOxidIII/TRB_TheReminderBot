@@ -33,7 +33,7 @@ class UserRepositoryTest {
                 () -> userRepository.getUserById(99L)
         );
 
-        assertTrue(exception.getMessage().contains("not found"));
+        assertTrue(exception.getMessage().contains("not found."));
     }
 
     @Test
