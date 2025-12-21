@@ -3,8 +3,10 @@ package org.thereminderbot;
 import org.thereminderbot.domain.Remind;
 import org.thereminderbot.domain.User;
 import org.thereminderbot.enums.UserMenu;
-import org.thereminderbot.repository.RemindRepository;
-import org.thereminderbot.repository.UserRepository;
+import org.thereminderbot.repository.RemindRepositoryImpl;
+import org.thereminderbot.repository.RemindRepositoryInterface;
+import org.thereminderbot.repository.UserRepositoryInterface;
+import org.thereminderbot.repository.UserRepositoryImpl;
 import org.thereminderbot.service.RemindService;
 import org.thereminderbot.service.UserService;
 import org.thereminderbot.service.MenuService;
@@ -16,8 +18,8 @@ import java.time.ZoneId;
 
 public class Main {
     public static void main(String[] args) {
-        var userRepository = new UserRepository();
-        var remindRepository = new RemindRepository();
+        var userRepository = new UserRepositoryImpl();
+        var remindRepository = new RemindRepositoryImpl();
 
         var user1 = new User(1, "Vasya", ZoneId.systemDefault(), UserMenu.MainPage.ordinal());
         var user2 = new User(2, "Misha", ZoneId.systemDefault(), UserMenu.MainPage.ordinal());

@@ -2,14 +2,12 @@ package org.thereminderbot.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.thereminderbot.domain.Remind;
 import org.thereminderbot.enums.RemindStatus;
-import org.thereminderbot.repository.RemindRepository;
+import org.thereminderbot.repository.RemindRepositoryInterface;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,12 +16,12 @@ import static org.mockito.Mockito.*;
 
 class RemindServiceTest {
 
-    private RemindRepository remindRepository;
+    private RemindRepositoryInterface remindRepository;
     private RemindService remindService;
 
     @BeforeEach
     void setUp() {
-        remindRepository = mock(RemindRepository.class);
+        remindRepository = mock(RemindRepositoryInterface.class);
         remindService = new RemindService(remindRepository);
     }
 

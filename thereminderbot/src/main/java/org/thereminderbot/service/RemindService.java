@@ -1,6 +1,6 @@
 package org.thereminderbot.service;
 import org.thereminderbot.enums.RemindStatus;
-import org.thereminderbot.repository.RemindRepository;
+import org.thereminderbot.repository.RemindRepositoryInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,11 +8,11 @@ import org.slf4j.LoggerFactory;
  * Сервис для работы с напоминаниями.
  */
 public class RemindService {
-    private final RemindRepository remindRepository;
+    private final RemindRepositoryInterface remindRepository;
 
     private static final Logger log = LoggerFactory.getLogger(RemindService.class);
 
-    public RemindService(RemindRepository remindRepository) {
+    public RemindService(RemindRepositoryInterface remindRepository) {
         this.remindRepository = remindRepository;
     }
 

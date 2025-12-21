@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.thereminderbot.domain.User;
 import org.thereminderbot.enums.UserMenu;
-import org.thereminderbot.repository.UserRepository;
+import org.thereminderbot.repository.UserRepositoryInterface;
 
 import java.time.ZoneId;
 
@@ -13,12 +13,12 @@ import static org.mockito.Mockito.*;
 
 class MenuServiceTest {
 
-    private UserRepository userRepository;
+    private UserRepositoryInterface userRepository;
     private MenuService menuService;
 
     @BeforeEach
     void setUp() {
-        userRepository = mock(UserRepository.class);
+        userRepository = mock(UserRepositoryInterface.class);
         menuService = new MenuService(userRepository);
     }
 

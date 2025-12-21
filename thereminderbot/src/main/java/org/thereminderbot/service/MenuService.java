@@ -1,13 +1,13 @@
 package org.thereminderbot.service;
-import org.thereminderbot.repository.UserRepository;
+import org.thereminderbot.repository.UserRepositoryInterface;
 import org.thereminderbot.enums.UserMenu;
 import org.thereminderbot.domain.User;
 
 
 public class MenuService {
-    private final UserRepository userRepository;
+    private final UserRepositoryInterface userRepository;
 
-    public MenuService(UserRepository userRepository) {
+    public MenuService(UserRepositoryInterface userRepository) {
         this.userRepository = userRepository;
     }
 

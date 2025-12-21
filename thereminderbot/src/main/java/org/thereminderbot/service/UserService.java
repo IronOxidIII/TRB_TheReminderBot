@@ -3,8 +3,8 @@ package org.thereminderbot.service;
 import org.thereminderbot.domain.User;
 import org.thereminderbot.enums.UserMenu;
 import org.thereminderbot.domain.Remind;
-import org.thereminderbot.repository.UserRepository;
-import org.thereminderbot.repository.RemindRepository;
+import org.thereminderbot.repository.UserRepositoryInterface;
+import org.thereminderbot.repository.RemindRepositoryInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,10 +12,10 @@ import java.util.List;
 
 public class UserService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
-    private final UserRepository userRepository;
-    private  final RemindRepository remindRepository;
+    private final UserRepositoryInterface userRepository;
+    private  final RemindRepositoryInterface remindRepository;
 
-    public UserService(UserRepository userRepository, RemindRepository remindRepository) {
+    public UserService(UserRepositoryInterface userRepository, RemindRepositoryInterface remindRepository) {
         this.userRepository = userRepository;
         this.remindRepository = remindRepository;
     }
