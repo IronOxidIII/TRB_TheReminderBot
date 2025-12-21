@@ -43,13 +43,13 @@ class UserTest {
         User user = new User(
                 10L,
                 "Abc",
-                ZoneId.of("Asia/Ekaterinburg"),
+                ZoneId.of("Asia/Yekaterinburg"),
                 2
         );
 
         assertEquals(10L, user.getUserId());
         assertEquals("Abc", user.getUserName());
-        assertEquals(ZoneId.of("Asia/Ekaterinburg"), user.getTimeZoneOffset());
+        assertEquals(ZoneId.of("Asia/Yekaterinburg"), user.getTimeZoneOffset());
         assertEquals(2, user.getCurrentMenuId());
     }
 }

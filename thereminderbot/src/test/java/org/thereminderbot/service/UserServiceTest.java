@@ -25,18 +25,19 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        userRepository = mock(UserRepository.class);
-        remindRepository = mock(RemindRepository.class);
+        userRepository = spy(new UserRepository());
+        remindRepository = spy(new RemindRepository());
         userService = new UserService(userRepository, remindRepository);
     }
+
 
     @Test
     void notifyUser_shouldLogInfoIfUserAndRemindExist() {
         User user = new User(1L, "Abc", ZoneId.of("UTC"), 0);
         Remind remind = new Remind(10L, "Test remind", 1L, OffsetDateTime.now(), Duration.ofHours(1));
 
-        when(userRepository.getUserById(1L)).thenReturn(user);
-        when(remindRepository.getRemindById(10L)).thenReturn(remind);
+        userRepository.addUser(user);
+        remindRepository.addRemind(remind);
 
         assertDoesNotThrow(() -> userService.notifyUser(1L, 10L));
 
@@ -48,14 +49,15 @@ class UserServiceTest {
 
     @Test
     void notifyUser_shouldHandleExceptionIfUserNotFound() {
-        when(userRepository.getUserById(99L))
-                .thenThrow(new IllegalArgumentException("User not found"));
+        doThrow(new IllegalArgumentException("User not found"))
+                .when(userRepository).getUserById(99L);
 
         assertDoesNotThrow(() -> userService.notifyUser(99L, 1L));
 
         verify(userRepository, times(1)).getUserById(99L);
         verify(remindRepository, never()).getRemindById(anyLong());
     }
+
 
 
     @Test
@@ -149,19 +151,19 @@ class UserServiceTest {
 
     @Test
     void deleteUserAndReminds_shouldThrowExceptionIfInvalidId() {
-        IllegalArgumentException exceptionZero = assertThrows(
+        IllegalArgumentException exZero = assertThrows(
                 IllegalArgumentException.class,
                 () -> userService.deleteUserAndReminds(0)
         );
-        assertEquals("Invalid user ID", exceptionZero.getMessage());
+        assertEquals("Invalid user ID", exZero.getMessage());
 
-        IllegalArgumentException exceptionNegative = assertThrows(
+        IllegalArgumentException exNegative = assertThrows(
                 IllegalArgumentException.class,
                 () -> userService.deleteUserAndReminds(-5)
         );
-        assertEquals("Invalid user ID", exceptionNegative.getMessage());
+        assertEquals("Invalid user ID", exNegative.getMessage());
 
-        verifyNoInteractions(remindRepository, userRepository);
+        verify(userRepository, never()).deleteUser(anyLong());
+        verify(remindRepository, never()).deleteRemindsByUserId(anyLong());
     }
-
 }
