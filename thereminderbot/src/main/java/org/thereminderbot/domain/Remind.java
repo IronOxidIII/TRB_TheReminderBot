@@ -49,23 +49,6 @@ public class Remind {
     }
 
     /**
-     * Конструктор копирования для передачи напоминания другому пользователю.
-     * Копирует все поля напоминания, кроме userId — он заменяется на новый.
-     *
-     * @param remind исходное напоминание
-     * @param newUserId id пользователя, которому будет принадлежать копия
-     */
-    public Remind(Remind remind, long newUserId) {
-        this.id = remind.id;
-        this.text = remind.text;
-        this.userId = newUserId;
-        this.time = remind.time;
-        this.frequencyOfRepetition = remind.frequencyOfRepetition;
-        this.status = remind.status;
-    }
-
-
-    /**
      * Получить id заметки.
      * @return Число - id заметки.
      */
