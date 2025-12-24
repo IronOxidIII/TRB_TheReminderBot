@@ -2,6 +2,7 @@ package org.thereminderbot.components.repository;
 
 import org.thereminderbot.repository.RemindRepository;
 import org.thereminderbot.repository.UserRepository;
+import org.thereminderbot.repository.TagRepository;
 
 /**
  * Компонент репозиториев.
@@ -9,6 +10,7 @@ import org.thereminderbot.repository.UserRepository;
 public class RepositoryComponent {
     private final RemindRepository remindRepository;
     private final UserRepository userRepository;
+    private final TagRepository tagRepository;
 
     /**
      * Конструктор по умолчанию.
@@ -16,6 +18,7 @@ public class RepositoryComponent {
     public RepositoryComponent() {
         remindRepository = new RemindRepository();
         userRepository = new UserRepository();
+        tagRepository = new TagRepository();
     }
 
     /**
@@ -30,5 +33,12 @@ public class RepositoryComponent {
      */
     public UserRepository getUserRepository() {
         return userRepository;
+    }
+
+    /**
+     * Получить репозиторий тегов.
+     */
+    public TagRepository getTagRepository() {
+        return tagRepository;
     }
 }
