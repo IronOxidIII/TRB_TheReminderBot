@@ -12,6 +12,11 @@ public class User {
     private long userId;
 
     /**
+     * Вспомогательное значение для определения идентификатора следующего пользователя.
+     */
+    private static long nextId = 1;
+
+    /**
      * Имя пользователя.
      */
     private String userName;
@@ -26,6 +31,11 @@ public class User {
      * @see org.thereminderbot.enums.UserMenu
      */
     private int currentMenuId;
+
+    /**
+     * Меню по умолчанию.
+     */
+    private static int defaultMenuId;
 
     public User(long userId, String userName, ZoneId timeZoneOffset, int currentMenuId) {
         this.userId = userId;
@@ -96,5 +106,16 @@ public class User {
      */
     public void setCurrentMenuId(int menuId) {
         this.currentMenuId = menuId;
+    }
+
+    /**
+     * nextID каждый раз увеличивается на 1 при добавлении нового пользователя.
+     */
+    public static long generateId() {
+        return nextId++;
+    }
+
+    public static int getDefaultMenuId() {
+        return defaultMenuId;
     }
 }
