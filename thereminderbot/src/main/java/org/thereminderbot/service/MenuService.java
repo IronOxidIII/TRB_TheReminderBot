@@ -1,19 +1,19 @@
 package org.thereminderbot.service;
-import org.thereminderbot.repository.UserRepositoryInterface;
+import org.thereminderbot.repository.UserRepository;
 import org.thereminderbot.enums.UserMenu;
 import org.thereminderbot.domain.User;
 
 
 public class MenuService {
-    private final UserRepositoryInterface userRepository;
+    private final UserRepository userRepository;
 
-    public MenuService(UserRepositoryInterface userRepository) {
+    public MenuService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     /**
-    * Переключение меню
-    */
+     * Переключение меню
+     */
     public void turnOnMenu(long userId, UserMenu userMenu) {
         User user = userRepository.getUserById(userId);
         user.setCurrentMenuId(userMenu.ordinal());

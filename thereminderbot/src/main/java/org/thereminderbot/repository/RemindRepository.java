@@ -1,6 +1,7 @@
 package org.thereminderbot.repository;
 
 import org.thereminderbot.domain.Remind;
+import org.thereminderbot.domain.User;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -9,10 +10,12 @@ import java.util.ArrayList;
  * Репозиторий заметок.
  */
 
-public class RemindRepositoryImpl implements RemindRepositoryInterface {
+public class RemindRepository {
+
     private final List<Remind> reminds;
 
-    public RemindRepositoryImpl() {
+    public RemindRepository() {
+        // Инициализация пустого хранилища
         this.reminds = new ArrayList<>();
     }
 
@@ -21,7 +24,7 @@ public class RemindRepositoryImpl implements RemindRepositoryInterface {
      *
      * @return новый список, содержащий все текущие напоминания.
      */
-    @Override
+
     public List<Remind> getAll() {
         return new ArrayList<>(reminds);
     }
@@ -31,7 +34,6 @@ public class RemindRepositoryImpl implements RemindRepositoryInterface {
      * @param remindId напоминания.
      * @return объект {Remind}, если найден; иначе {null}.
      */
-    @Override
     public Remind getRemindById(long remindId) {
         for (var r : reminds) {
             if (r.getId() == remindId) return r;
@@ -42,7 +44,7 @@ public class RemindRepositoryImpl implements RemindRepositoryInterface {
     /**
      * Получить все напоминания, принадлежащие пользователю с указанным userId.
      */
-    @Override
+
     public List<Remind> getRemindsByUser(long userId) {
         var result = new ArrayList<Remind>();
         for (var r : reminds) {
@@ -58,7 +60,6 @@ public class RemindRepositoryImpl implements RemindRepositoryInterface {
      * @param remind напоминание, которое нужно добавить.
      * @throws IllegalArgumentException если remind равен {null}.
      */
-    @Override
     public void addRemind(Remind remind) {
         if (remind == null) {
             throw new IllegalArgumentException("Remind cannot be null");
@@ -71,7 +72,6 @@ public class RemindRepositoryImpl implements RemindRepositoryInterface {
      * @param remindId напоминания, которое нужно удалить.
      * @throws IllegalArgumentException если напоминание с таким ID не найдено.
      */
-    @Override
     public void deleteRemindById(long remindId) {
         boolean removed = reminds.removeIf(r -> r.getId() == remindId);
         if (!removed) {
@@ -84,7 +84,6 @@ public class RemindRepositoryImpl implements RemindRepositoryInterface {
      * @param userId пользователя, чьи напоминания нужно удалить.
      * @throws IllegalArgumentException если у пользователя нет ни одного напоминания.
      */
-    @Override
     public void deleteRemindsByUserId(long userId) {
         boolean removed = reminds.removeIf(r -> r.getUserId() == userId);
         if (!removed) {

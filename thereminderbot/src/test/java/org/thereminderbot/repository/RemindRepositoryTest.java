@@ -13,11 +13,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RemindRepositoryTest {
 
-    private RemindRepositoryInterface repository;
+    private RemindRepository repository;
 
     @BeforeEach
     void setUp() {
-        repository = new RemindRepositoryImpl();
+        repository = new RemindRepository();
     }
 
     @Test

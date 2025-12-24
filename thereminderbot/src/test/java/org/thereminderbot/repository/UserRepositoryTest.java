@@ -10,11 +10,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UserRepositoryTest {
 
-    private UserRepositoryInterface userRepository;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
-        userRepository = new UserRepositoryImpl();
+        userRepository = new UserRepository();
     }
 
     @Test

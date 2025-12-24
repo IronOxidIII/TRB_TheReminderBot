@@ -3,8 +3,8 @@ package org.thereminderbot.service;
 import org.thereminderbot.domain.User;
 import org.thereminderbot.enums.UserMenu;
 import org.thereminderbot.domain.Remind;
-import org.thereminderbot.repository.UserRepositoryInterface;
-import org.thereminderbot.repository.RemindRepositoryInterface;
+import org.thereminderbot.repository.UserRepository;
+import org.thereminderbot.repository.RemindRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,10 +12,10 @@ import java.util.List;
 
 public class UserService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
-    private final UserRepositoryInterface userRepository;
-    private  final RemindRepositoryInterface remindRepository;
+    private final UserRepository userRepository;
+    private  final RemindRepository remindRepository;
 
-    public UserService(UserRepositoryInterface userRepository, RemindRepositoryInterface remindRepository) {
+    public UserService(UserRepository userRepository, RemindRepository remindRepository) {
         this.userRepository = userRepository;
         this.remindRepository = remindRepository;
     }
@@ -27,9 +27,9 @@ public class UserService {
         try {
             User user = userRepository.getUserById(userId);
             Remind remind = remindRepository.getRemindById(remindId);
-            log.info("Notification for user {}: {}", user.getUserName(), remind.getText());
+            log.info("Уведомление для пользователя {}: {}", user.getUserName(), remind.getText());
         } catch (IllegalArgumentException e) {
-            log.warn("Failed to notify user {}: {}", userId, e.getMessage());
+            log.warn("Ошибка уведомления пользователя: {}", e.getMessage());
         }
     }
 
@@ -104,7 +104,7 @@ public class UserService {
     public void deleteUserAndReminds(long userId) {
         if (userId <= 0) {
             log.warn("Попытка удаления с невалидным ID пользователя: {}", userId);
-            throw new IllegalArgumentException("Invalid user ID");
+            throw new IllegalArgumentException("Невалидный ID пользователя");
         }
         try {
             remindRepository.deleteRemindsByUserId(userId);
