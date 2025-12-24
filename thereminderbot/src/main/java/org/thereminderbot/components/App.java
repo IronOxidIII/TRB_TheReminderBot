@@ -4,13 +4,14 @@ import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.components.service.ServiceComponent;
 import java.io.PrintStream;
 import java.util.*;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.Duration;
+import org.thereminderbot.domain.Remind;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
     private final ServiceComponent serviceComponent;
-    private final Set<String> commands;
-
-    private final Scanner scanner = new Scanner(System.in);
 
     private final Scanner scanner = new Scanner(System.in);
     private final PrintStream userOut = System.out;
@@ -21,8 +22,6 @@ public class App {
     public App() {
         repositoryComponent = new RepositoryComponent();
         serviceComponent = new ServiceComponent();
-        commands = new HashSet<>();
-        initializeCommands();
     }
 
     /**
@@ -36,10 +35,6 @@ public class App {
             String command = scanner.nextLine().trim().toLowerCase();
             handleMenuInput(command);
             System.out.println();
-            userOut.println("Введите команду: ");
-            String command = scanner.nextLine().trim().toLowerCase();
-            handleMenuInput(command);
-            userOut.println();
         }
     }
 
@@ -47,9 +42,89 @@ public class App {
      * Добавить напоминание.
      */
     private void addRemind() {
-        //TODO
+        long userId = readUserId();
+        if (userId == -1) return;
+        String text = readRemindText();
+        if (text == null) return;
+        OffsetDateTime time = readRemindTime();
+        if (time == null) return;
+        Duration frequency = readInterval();
+        if (frequency == null) return;
+        long remindId = repositoryComponent.getRemindRepository().getAll().size() + 1;
+        Remind remind = new Remind(remindId, text, userId, time, frequency);
+        repositoryComponent.getRemindRepository().addRemind(remind);
+
+        userOut.println(String.format("Напоминание ID %d добавлено пользователю %d.", remindId, userId));
     }
 
+    /**
+     * Чтение ID пользователя
+     */
+    private long readUserId() {
+        userOut.print("Введите ID пользователя: ");
+        String userIdStr = scanner.nextLine().trim();
+
+        if (!ParsingHelper.isId(userIdStr)) {
+            userOut.println(String.format("Некорректный ID пользователя: %s", userIdStr));
+            return -1;
+        }
+
+        long userId = Long.parseLong(userIdStr);
+        var user = repositoryComponent.getUserRepository().getUserById(userId);
+        if (user == null) {
+            userOut.println(String.format("Пользователь с ID %d не найден.", userId));
+            return -1;
+        }
+        return userId;
+    }
+
+    /**
+     * Чтение текста напоминания
+     */
+    private String readRemindText() {
+        userOut.print("Введите текст напоминания: ");
+        String text = scanner.nextLine().trim();
+        if (text.isEmpty()) {
+            userOut.println("Текст напоминания не может быть пустым.");
+            return null;
+        }
+        return text;
+    }
+
+    /**
+     * Чтение даты и времени напоминания
+     */
+    private OffsetDateTime readRemindTime() {
+        userOut.print("Введите дату и время (формат YYYY-MM-DD HH:MM): ");
+        String timeStr = scanner.nextLine().trim();
+        try {
+            var localDT = java.time.LocalDateTime.parse(
+                    timeStr,
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+            );
+
+            ZoneId userZone = ZoneId.systemDefault();
+            return localDT.atZone(userZone).toOffsetDateTime();
+        } catch (Exception e) {
+            userOut.println(String.format("Некорректная дата/время: %s", timeStr));
+            return null;
+        }
+    }
+
+    /**
+     * Чтение интервала повторения напоминания в часах
+     */
+    private Duration readInterval() {
+        userOut.print("Введите интервал в часах (например 0, 1, 24): ");
+        String intervalStr = scanner.nextLine().trim();
+        try {
+            long hours = Long.parseLong(intervalStr);
+            return Duration.ofHours(hours);
+        } catch (NumberFormatException e) {
+            userOut.println(String.format("Некорректный интервал: %s", intervalStr));
+            return null;
+        }
+    }
     /**
      * Добавить пользователя.
      */
@@ -67,18 +142,49 @@ public class App {
 
     /**
      * Удалить напоминание.
-     * @param id - строка с id напоминания.
+     * @param idStr - строка с id напоминания.
      */
-    private void delete_remind(String id) {
-        //TODO
+    private void delete_remind(String idStr) {
+        long id = ParsingHelper.parseId(idStr);
+        if (id == -1) {
+            userOut.println(String.format("Некорректный ID напоминания: %s", idStr));
+            return;
+        }
+
+        try {
+            serviceComponent.getRemindService().deleteRemind(id);
+            userOut.println(String.format("Напоминание с ID %d удалено.", id));
+        } catch (Exception e) {
+            userOut.println("Не удалось удалить напоминание. Попробуйте позже.");
+        }
     }
 
     /**
      * Напечатать информацию о напоминании.
-     * @param id - строка с id напоминания.
+     * @param idStr - строка с id напоминания.
      */
-    private void getRemindInfo(String id) {
-        //TODO
+    private void getRemindInfo(String idStr) {
+        long remindId = ParsingHelper.parseId(idStr);
+        if (remindId == -1) {
+            userOut.println(String.format("Некорректный ID напоминания: %s", idStr));
+            return;
+        }
+
+
+        try {
+            Remind remind = repositoryComponent.getRemindRepository().getRemindById(remindId);
+
+            if (remind == null) {
+                userOut.println(String.format("Напоминание с ID %d не найдено.", remindId));
+                return;
+            }
+
+            userOut.println("Информация о напоминании:");
+            userOut.println(remind);
+
+        } catch (Exception e) {
+            userOut.println("Не удалось получить напоминание. Попробуйте позже.");
+        }
     }
 
     /**
@@ -92,21 +198,66 @@ public class App {
      * Вывести все напомининия.
      */
     private void listAllReminds() {
-        //TODO
+        var reminds = repositoryComponent.getRemindRepository().getAll();
+
+        if (reminds.isEmpty()) {
+            userOut.println("Нет ни одного напоминания.");
+            return;
+        }
+
+        userOut.println("Список всех напоминаний:");
+        for (var remind : reminds) {
+            userOut.println(remind);
+        }
     }
 
     /**
      * Напечатать все напоминания пользователя.
      */
-    private void listUsersReminds(String id) {
-        //TODO
+    private void listUsersReminds(String idStr) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
+            return;
+        }
+
+        var reminds = repositoryComponent.getRemindRepository().getRemindsByUser(userId);
+
+        if (reminds.isEmpty()) {
+            userOut.println(String.format("У пользователя с ID %d нет напоминаний.", userId));
+            return;
+        }
+
+        userOut.println(String.format("Напоминания пользователя %d:", userId));
+        for (var r : reminds) {
+            userOut.println(r);
+        }
     }
 
     /**
-     * Изменить текст напомининия.
+     * Изменить текст напоминания.
      */
-    private void changeRemindText(String id) {
-        //TODO
+    private void changeRemindText(String idStr) {
+        long remindId = ParsingHelper.parseId(idStr);
+        if (remindId == -1) {
+            userOut.println(String.format("Некорректный ID напоминания: %s", idStr));
+            return;
+        }
+
+        userOut.print("Введите новый текст напоминания: ");
+        String newText = scanner.nextLine().trim();
+
+        if (newText.isEmpty()) {
+            userOut.println("Текст не может быть пустым.");
+            return;
+        }
+
+        try {
+            serviceComponent.getRemindService().changeRemindText(remindId, newText);
+            userOut.println("Текст напоминания обновлён.");
+        } catch (Exception e) {
+            userOut.println("Не удалось изменить текст напоминания. Попробуйте позже.");
+        }
     }
 
     /**
@@ -179,8 +330,8 @@ public class App {
 
     private void handleMenuInput(String input) {
         if (input == null || input.isEmpty()) {
-            System.out.println("Ввод не можнт быть пустым.");
-            userOut.println("Ввод не можнт быть пустым.");
+            System.out.println("Ввод не может быть пустым.");
+            userOut.println("Ввод не может быть пустым.");
         }
 
         String[] inputArr = input.split(" ");
@@ -262,35 +413,39 @@ public class App {
         }
     }
 
-        private String getMethodHelp (String method) {
+    private String getMethodHelp(String method) {
         String prefix = "Использование команды: ";
-        return prefix + switch (method) {
-            String prefix = "Использование команды: ";
-            return prefix + switch (method) {
-                case "/delete_user" -> "/delete_user [userId] - Id пользователя";
-                case "/delete_remind" -> "/delete_remind [remindId] - Id напоминания";
-                case "/get_user_info" -> "/get_user_info [userId] - Id пользователя";
-                case "/get_remind_info" -> "/get_remind_info [remindId] - Id напоминания";
-                case "/list_users_reminds" -> "/list_users_reminds [userId] - Id пользователя";
-                case "/change_remind_text" -> "/change_remind_text [remindId] - Id напоминания";
-                case "/change_username" -> "/change_username [userId] - Id пользователя";
-                default -> "Нет справки для данного метода.";
-            };
+        String help;
+
+        switch (method) {
+            case "/delete_user":
+                help = "/delete_user [userId] - Id пользователя";
+                break;
+            case "/delete_remind":
+                help = "/delete_remind [remindId] - Id напоминания";
+                break;
+            case "/get_user_info":
+                help = "/get_user_info [userId] - Id пользователя";
+                break;
+            case "/get_remind_info":
+                help = "/get_remind_info [remindId] - Id напоминания";
+                break;
+            case "/list_users_reminds":
+                help = "/list_users_reminds [userId] - Id пользователя";
+                break;
+            case "/change_remind_text":
+                help = "/change_remind_text [remindId] - Id напоминания";
+                break;
+            case "/change_username":
+                help = "/change_username [userId] - Id пользователя";
+                break;
+            default:
+                help = "Нет справки для данной команды.";
+                break;
         }
 
-        private void initializeCommands () {
-            commands.add("/add_remind");
-            commands.add("/add_user");
-            commands.add("/delete_user");
-            commands.add("/delete_remind");
-            commands.add("/get_remind_info");
-            commands.add("/get_user_info");
-            commands.add("/help");
-            commands.add("/list_all_reminds");
-            commands.add("/list_users_reminds");
-            commands.add("/change_remind_text");
-            commands.add("/change_username");
-        }
+        return prefix + help;
+    }
 
     static public class ParsingHelper {
         static boolean isId(String input) {
@@ -306,6 +461,13 @@ public class App {
             }
 
             return true;
+        }
+
+        static long parseId(String idStr) {
+            if (!isId(idStr)) {
+                return -1;
+            }
+            return Long.parseLong(idStr);
         }
     }
 }
