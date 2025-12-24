@@ -10,6 +10,10 @@ import java.time.Duration;
 import org.thereminderbot.domain.Remind;
 import org.thereminderbot.components.service.NotificationService;
 import org.thereminderbot.components.service.NotificationBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
@@ -18,24 +22,36 @@ public class App {
     private final Scanner scanner = new Scanner(System.in);
     private final PrintStream userOut = System.out;
     private final NotificationService notificationService;
-    private final NotificationBuffer notificationBuffer;
+
     /**
      * Конструктор по умолчанию.
      */
     public App() {
         repositoryComponent = new RepositoryComponent();
-        serviceComponent = new ServiceComponent();
-        notificationBuffer = new NotificationBuffer();
+        serviceComponent = new ServiceComponent(repositoryComponent);
 
         notificationService = new NotificationService(
-                repositoryComponent.getRemindRepository(),
-                notificationBuffer
+                repositoryComponent.getRemindRepository()
         );
 
         notificationService.start();
 
-        startNotificationListener(notificationBuffer);
+        startNotificationListener();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            notificationListenerExecutor.shutdownNow();
+            notificationService.stop();
+        }, "shutdown-hook"));
     }
+
+    private static final Logger log = LoggerFactory.getLogger(App.class);
+
+    private final ExecutorService notificationListenerExecutor =
+            Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "notification-listener");
+                t.setDaemon(true);
+                return t;
+            });
 
     /**
      * Запустить консольного бота.
@@ -492,12 +508,19 @@ public class App {
                 )
         );
     }
-    private void startNotificationListener(NotificationBuffer buffer) {
-        new Thread(() -> {
-            while (true) {
-                Remind remind = buffer.take();
-                handleNotification(remind);
+    private void startNotificationListener() {
+        notificationListenerExecutor.submit(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Remind remind = NotificationBuffer.take(); // <-- статик
+                    handleNotification(remind);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    log.error("Notification listener error", e);
+                }
             }
-        }).start();
+        });
     }
 }

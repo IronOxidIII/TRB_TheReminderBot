@@ -1,22 +1,21 @@
 package org.thereminderbot.components.service;
 
-import org.thereminderbot.repository.RemindRepository;
+import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.service.RemindService;
 import org.thereminderbot.service.UserService;
 
-/**
- * Компонент сервисов.
- */
 public class ServiceComponent {
     private final UserService userService;
     private final RemindService remindService;
 
-    /**
-     * Конструктор по умолчанию.
-     */
-    public ServiceComponent() {
-        userService = new UserService();
-        remindService = new RemindService(new RemindRepository());
+    public ServiceComponent(RepositoryComponent repositoryComponent) {
+        this.userService = new UserService(
+                repositoryComponent.getUserRepository(),
+                repositoryComponent.getRemindRepository()
+        );
+        this.remindService = new RemindService(
+                repositoryComponent.getRemindRepository()
+        );
     }
 
     public UserService getUserService() {

@@ -1,45 +1,28 @@
 package org.thereminderbot.components.service;
+
 import org.thereminderbot.domain.Remind;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class NotificationBuffer {
+public final class NotificationBuffer {
 
-    private final Queue<Remind> queue = new ConcurrentLinkedQueue<>();
+    private static final BlockingQueue<Remind> queue = new LinkedBlockingQueue<>();
 
-    /**
-     * Добавить напоминание в очередь уведомлений
-     */
-    public void push(Remind remind) {
-        queue.add(remind);
+    private NotificationBuffer() {}
+
+    public static void push(Remind remind) {
+        queue.offer(remind);
     }
 
-    /**
-     * Получить следующее уведомление.
-     */
-    public Remind poll() {
+    public static Remind poll() {
         return queue.poll();
     }
 
-    /**
-     * Проверка, есть ли ожидающие уведомления.
-     */
-    public boolean isEmpty() {
+    public static boolean isEmpty() {
         return queue.isEmpty();
     }
 
-    /**
-     * Получить следующее уведомление из очереди.
-     */
-    public Remind take() {
-        Remind result;
-        while ((result = queue.poll()) == null) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        return result;
+    public static Remind take() throws InterruptedException {
+        return queue.take();
     }
 }
