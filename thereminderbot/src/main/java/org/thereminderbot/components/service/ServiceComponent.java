@@ -2,8 +2,10 @@ package org.thereminderbot.components.service;
 
 import org.thereminderbot.repository.RemindRepository;
 import org.thereminderbot.repository.UserRepository;
+import org.thereminderbot.repository.TagRepository;
 import org.thereminderbot.service.RemindService;
 import org.thereminderbot.service.UserService;
+import org.thereminderbot.service.TagService;
 
 /**
  * Компонент сервисов.
@@ -11,6 +13,7 @@ import org.thereminderbot.service.UserService;
 public class ServiceComponent {
     private final UserService userService;
     private final RemindService remindService;
+    private final TagService tagService;
 
     /**
      * Конструктор по умолчанию.
@@ -18,9 +21,11 @@ public class ServiceComponent {
     public ServiceComponent() {
         RemindRepository remindRepository = new RemindRepository();
         UserRepository userRepository = new UserRepository();
+        TagRepository tagRepository = new TagRepository();
 
         userService = new UserService(userRepository, remindRepository);
         remindService = new RemindService(remindRepository);
+        tagService = new TagService(tagRepository, remindRepository);
     }
 
     /**
@@ -35,5 +40,12 @@ public class ServiceComponent {
      */
     public RemindService getRemindService() {
         return remindService;
+    }
+
+    /**
+     * Получить сервис тегов.
+     */
+    public TagService getTagService() {
+        return tagService;
     }
 }
