@@ -4,7 +4,12 @@ import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.components.service.ServiceComponent;
 
 import java.io.PrintStream;
+import java.time.ZoneId;
 import java.util.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.thereminderbot.domain.User;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
@@ -45,16 +50,68 @@ public class App {
     /**
      * Добавить пользователя.
      */
+    private static long nextUserId = 1;
+
     private void addUser() {
-        //TODO
+        try {
+            userOut.print("Введите имя пользователя: ");
+            String name = scanner.nextLine().trim();
+            if (name.isEmpty()) {
+                userOut.println("Имя пользователя не может быть пустым.");
+                return;
+            }
+
+            userOut.print("Введите часовой пояс пользователя (например, Europe/Moscow): ");
+            String tzInput = scanner.nextLine().trim();
+            if (tzInput.isEmpty()) {
+                userOut.println("Часовой пояс пользователя не может быть пустым.");
+                return;
+            }
+
+            ZoneId zone;
+            try {
+                zone = ZoneId.of(tzInput);
+            } catch (Exception e) {
+                userOut.println("Некорректный часовой пояс: " + tzInput);
+                return;
+            }
+
+            long id = nextUserId++;
+            int defaultMenu = 0;
+            User user = new User(id, name, zone, defaultMenu);
+
+            repositoryComponent.getUserRepository().addUser(user);
+            userOut.println(String.format("Пользователь '%s' добавлен с ID %d", name, id));
+
+        } catch (Exception e) {
+            userOut.println("Ошибка при добавлении пользователя: " + e.getMessage());
+        }
     }
+
 
     /**
      * Удалить пользователя.
-     * @param id - строка с id пользователя.
+     * @param idStr - строка с id пользователя.
      */
-    private void deleteUser(String id) {
-        //TODO
+    private void deleteUser(String idStr) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
+            return;
+        }
+
+        try {
+            repositoryComponent.getUserRepository().deleteUser(userId);
+            userOut.println(String.format(
+                    "Пользователь с ID %d и его напоминания удалены.",
+                    userId
+            ));
+        } catch (IllegalArgumentException e) {
+            userOut.println(String.format(
+                    "Ошибка при удалении пользователя: %s",
+                    e.getMessage()
+            ));
+        }
     }
 
     /**
@@ -76,8 +133,21 @@ public class App {
     /**
      * Напечатать информацию о пользователе.
      */
-    private void getUserInfo(String id) {
-        //TODO
+    private void getUserInfo(String idStr) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
+            return;
+        }
+
+        try {
+            serviceComponent.getUserService().printUserInfo(userId);
+        } catch (IllegalArgumentException e) {
+            userOut.println(String.format(
+                    "Ошибка при получении информации о пользователе: %s",
+                    e.getMessage()
+            ));
+        }
     }
 
     /**
@@ -90,8 +160,21 @@ public class App {
     /**
      * Напечатать все напоминания пользователя.
      */
-    private void listUsersReminds(String id) {
-        //TODO
+    private void listUsersReminds(String idStr) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
+            return;
+        }
+
+        try {
+            serviceComponent.getUserService().printUsersReminds(userId);
+        } catch (IllegalArgumentException e) {
+            userOut.println(String.format(
+                    "Ошибка при выводе напоминаний пользователя: %s",
+                    e.getMessage()
+            ));
+        }
     }
 
     /**
@@ -104,8 +187,34 @@ public class App {
     /**
      * Изменить имя пользователя.
      */
-    private void changeUserName(String id) {
-        //TODO
+    private void changeUserName(String idStr) {
+        long userId = ParsingHelper.parseId(idStr);
+        if (userId == -1) {
+            userOut.println(String.format("Некорректный ID пользователя: %s", idStr));
+            return;
+        }
+
+        try {
+            User user = repositoryComponent.getUserRepository().getUserById(userId);
+            userOut.print("Введите новое имя пользователя: ");
+            String newName = scanner.nextLine().trim();
+
+            if (newName.isEmpty()) {
+                userOut.println("Имя пользователя не может быть пустым.");
+                return;
+            }
+
+            user.setUserName(newName);
+            userOut.println(String.format(
+                    "Имя пользователя с ID %d изменено на '%s'",
+                    userId, newName
+            ));
+        } catch (IllegalArgumentException e) {
+            userOut.println(String.format(
+                    "Ошибка при изменении имени пользователя: %s",
+                    e.getMessage()
+            ));
+        }
     }
 
     private void printWelcome() {
@@ -254,6 +363,13 @@ public class App {
             }
 
             return true;
+        }
+
+        static long parseId(String idStr) {
+            if (!isId(idStr)) {
+                return -1;
+            }
+            return Long.parseLong(idStr);
         }
     }
 }
