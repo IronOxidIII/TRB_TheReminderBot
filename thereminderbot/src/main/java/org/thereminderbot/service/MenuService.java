@@ -12,8 +12,8 @@ public class MenuService {
     }
 
     /**
-    * Переключение меню
-    */
+     * Переключение меню
+     */
     public void turnOnMenu(long userId, UserMenu userMenu) {
         User user = userRepository.getUserById(userId);
         user.setCurrentMenuId(userMenu.ordinal());

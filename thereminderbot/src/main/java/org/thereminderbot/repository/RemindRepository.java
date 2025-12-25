@@ -31,7 +31,7 @@ public class RemindRepository {
 
     /**
      * Получить одно напоминание по его идентификатору.
-     * @param ID напоминания.
+     * @param remindId напоминания.
      * @return объект {Remind}, если найден; иначе {null}.
      */
     public Remind getRemindById(long remindId) {
@@ -69,7 +69,7 @@ public class RemindRepository {
 
     /**
      * Удаляет напоминание по ID.
-     * @param ID напоминания, которое нужно удалить.
+     * @param remindId напоминания, которое нужно удалить.
      * @throws IllegalArgumentException если напоминание с таким ID не найдено.
      */
     public void deleteRemindById(long remindId) {
@@ -81,7 +81,7 @@ public class RemindRepository {
 
     /**
      * Удаляет все напоминания, принадлежащие пользователю с указанным ID.
-     * @param ID пользователя, чьи напоминания нужно удалить.
+     * @param userId пользователя, чьи напоминания нужно удалить.
      * @throws IllegalArgumentException если у пользователя нет ни одного напоминания.
      */
     public void deleteRemindsByUserId(long userId) {

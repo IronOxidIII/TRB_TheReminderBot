@@ -24,7 +24,7 @@ public class UserRepository {
                 return user;
             }
         }
-        throw new IllegalArgumentException(String.format("Пользователь с id %d не найден.", id));
+        throw new IllegalArgumentException(String.format("User with id %d not found.", id));
     }
 
     /**
@@ -40,7 +40,7 @@ public class UserRepository {
     public void deleteUser(long id) {
         User user = getUserById(id);
         if (user == null) {
-            throw new IllegalArgumentException(String.format("Пользователь с id %d не найден.", id));
+            throw new IllegalArgumentException(String.format("User with id %d not found.", id));
         }
         users.remove(user);
     }
