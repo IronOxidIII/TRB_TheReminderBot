@@ -9,7 +9,7 @@ import org.thereminderbot.repository.RemindRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NotificationService implements AutoCloseable {
+public class NotificationService {
     private static final Logger log =
             LoggerFactory.getLogger(NotificationService.class);
     private final ScheduledExecutorService scheduler;
@@ -53,10 +53,6 @@ public class NotificationService implements AutoCloseable {
         } finally {
             started.set(false);
         }
-    }
-
-    public void close() {
-        stop();
     }
 
     private void checkAllReminds() {
