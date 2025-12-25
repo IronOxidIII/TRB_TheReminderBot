@@ -12,5 +12,10 @@ public enum RemindStatus {
     /**
      * Заметка деактивирована.
      */
-    Deactivated
+    Deactivated,
+
+    /**
+     * Напоминание уже отправлено.
+     */
+    Sent
 }
