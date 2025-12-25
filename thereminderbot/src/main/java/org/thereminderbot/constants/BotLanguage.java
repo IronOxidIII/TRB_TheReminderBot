@@ -8,11 +8,11 @@ public class BotLanguage {
             """;
 
     public static final String Help = """
-            Справка по использованию:");
-            Доступные команды:");
-            /add_remind                    - Добавить напоминание");
-            /list_all_reminds              - Вывести все напоминания");
-            /help                          - Эта справка");
+            Справка по использованию:
+            Доступные команды:
+            /add_remind                    - Добавить напоминание
+            /list_all_reminds              - Вывести все напоминания
+            /help                          - Эта справка
             """;
 
     public static final String InvalidOperation = "Неизвестная команда. Введите /help";

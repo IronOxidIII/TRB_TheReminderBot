@@ -1,6 +1,5 @@
 package org.thereminderbot.components;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
@@ -11,6 +10,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.thereminderbot.components.repository.RepositoryComponent;
+import org.thereminderbot.components.service.NotificationBuffer;
+import org.thereminderbot.components.service.NotificationService;
 import org.thereminderbot.components.service.ServiceComponent;
 import org.thereminderbot.constants.BotConstants;
 import org.thereminderbot.constants.BotLanguage;
@@ -21,22 +22,37 @@ import org.thereminderbot.enums.UserMenu;
 import org.thereminderbot.helpers.ConfigHelper;
 import org.thereminderbot.helpers.ParsingHelper;
 
-import javax.security.auth.callback.Callback;
-import java.text.ParseException;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TheReminderBot extends TelegramLongPollingBot {
     private final RepositoryComponent repositoryComponent = new RepositoryComponent();;
     private final ServiceComponent serviceComponent = new ServiceComponent(repositoryComponent);
+    private final NotificationService notificationService =
+            new NotificationService(repositoryComponent.getRemindRepository());
 
-    Logger log = LoggerFactory.getLogger(TheReminderBot.class);
+    private Logger log = LoggerFactory.getLogger(TheReminderBot.class);
+    private final ExecutorService notificationListenerExecutor =
+            Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "notification-listener");
+                t.setDaemon(true);
+                return t;
+            });
+
+    public TheReminderBot() {
+        notificationService.start();
+        startNotificationListener();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            notificationListenerExecutor.shutdownNow();
+            notificationService.stop();
+        }, "shutdown-hook"));
+    }
 
     @Override
     public void onUpdateReceived(Update update) {
@@ -82,16 +98,6 @@ public class TheReminderBot extends TelegramLongPollingBot {
         }
         // Иначе обработать как команду
         handleCommand(update.getMessage().getText(), userSession);
-    }
-
-    @Override
-    public String getBotUsername() {
-        return ConfigHelper.getBotUsername();
-    }
-
-    @Override
-    public String getBotToken() {
-        return ConfigHelper.getBotToken();
     }
 
     /**
@@ -202,7 +208,7 @@ public class TheReminderBot extends TelegramLongPollingBot {
                 .getRemindRepository()
                 .getRemindsByUser(session.getUser().getUserId());
 
-        return userReminds.get(remindPageIndex * BotConstants.RemindsPerPage + remindIndexOnPage - 1).getId();
+        return userReminds.get(remindPageIndex * BotConstants.RemindsPerPage + remindIndexOnPage).getId();
     }
 
     /**
@@ -389,30 +395,6 @@ public class TheReminderBot extends TelegramLongPollingBot {
         return pageSelector;
     }
 
-    private void getRemindInfo(String remindId, UserSession session) {
-        long lRemindId = ParsingHelper.parseLong(remindId);
-        if (lRemindId == -1) {
-            sendMessage(session.getChatId(), String.format("Некорректный ID напоминания: %s", remindId));
-            return;
-        }
-
-        try {
-            Remind remind = repositoryComponent.getRemindRepository().getRemindById(lRemindId);
-
-            if (remind == null) {
-                sendMessage(session.getChatId(), String.format("Напоминание с ID %d не найдено.", remindId));
-                return;
-            }
-
-            StringBuilder sb = new StringBuilder();
-            sb.append("Информация о напоминании:");
-            sb.append(remind.toString());
-
-        } catch (Exception e) {
-            sendMessage(session.getChatId(), "Не удалось получить напоминание. Попробуйте позже.");
-        }
-    }
-
     private void editTextRemind(String text, UserSession session) {
         try {
             serviceComponent.getRemindService().changeRemindText(session.getRemindId(), text);
@@ -421,6 +403,7 @@ public class TheReminderBot extends TelegramLongPollingBot {
             sendMessage(session.getChatId(), "Не удалось изменить текст напоминания. Попробуйте позже.");
         }
     }
+
     private void deleteRemind(UserSession session) {
         Long remindId = session.getRemindId();
 
@@ -439,17 +422,37 @@ public class TheReminderBot extends TelegramLongPollingBot {
         sendMessage(chatId, BotLanguage.Help);
     }
 
-    private String getMethodHelp (String method) {
-        String prefix = "Использование команды: ";
-        return prefix + switch (method) {
-            case "/delete_user" -> "/delete_user [userId] - Id пользователя";
-            case "/delete_remind" -> "/delete_remind [remindId] - Id напоминания";
-            case "/get_user_info" -> "/get_user_info [userId] - Id пользователя";
-            case "/get_remind_info" -> "/get_remind_info [remindId] - Id напоминания";
-            case "/list_users_reminds" -> "/list_users_reminds [userId] - Id пользователя";
-            case "/change_remind_text" -> "/change_remind_text [remindId] - Id напоминания";
-            case "/change_username" -> "/change_username [userId] - Id пользователя";
-            default -> "Нет справки для данного метода.";
-        };
+    private void handleNotification(long chatId, Remind remind) {
+        sendMessage(chatId, String.format("Напоминание сработало: %s", remind.getText()));
+    }
+
+    private void startNotificationListener() {
+        notificationListenerExecutor.submit(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Remind remind = NotificationBuffer.take(); // <-- статик
+                    handleNotification(
+                            repositoryComponent
+                                    .getUserSessionRepository()
+                                    .getChatIdByUserId(remind.getUserId()),
+                            remind);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    log.error("Notification listener error", e);
+                }
+            }
+        });
+    }
+
+    @Override
+    public String getBotUsername() {
+        return ConfigHelper.getBotUsername();
+    }
+
+    @Override
+    public String getBotToken() {
+        return ConfigHelper.getBotToken();
     }
 }

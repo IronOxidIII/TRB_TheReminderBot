@@ -5,24 +5,18 @@ import org.thereminderbot.components.service.ServiceComponent;
 import org.thereminderbot.domain.Remind;
 import org.thereminderbot.components.service.NotificationService;
 import org.thereminderbot.components.service.NotificationBuffer;
+import org.thereminderbot.domain.User;
+import org.thereminderbot.enums.UserMenu;
 
 import java.io.PrintStream;
 import java.util.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.Duration;
-import org.thereminderbot.domain.Remind;
-import org.thereminderbot.components.service.NotificationService;
-import org.thereminderbot.components.service.NotificationBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.thereminderbot.domain.User;
-import org.thereminderbot.enums.UserMenu;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
@@ -38,7 +32,6 @@ public class App {
     public App() {
         repositoryComponent = new RepositoryComponent();
         serviceComponent = new ServiceComponent(repositoryComponent);
-        notificationBuffer = new NotificationBuffer();
 
         notificationService = new NotificationService(
                 repositoryComponent.getRemindRepository()

@@ -1,10 +1,7 @@
 package org.thereminderbot.repository;
 
-import org.thereminderbot.components.TelegramConnector.RemindStepwiseBuilder;
-import org.thereminderbot.domain.User;
 import org.thereminderbot.domain.UserSession;
 
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class UserSessionRepository {
@@ -29,5 +26,15 @@ public class UserSessionRepository {
 
     public void addUserSession(long chatId, UserSession userSession) {
         userSessions.put(chatId, userSession);
+    }
+
+    public long getChatIdByUserId(long userId) {
+        var values = userSessions.values();
+        for (var userSession : values) {
+            if (userSession.getUser().getUserId() == userId) {
+                return userSession.getChatId();
+            }
+        }
+        return 0;
     }
 }
