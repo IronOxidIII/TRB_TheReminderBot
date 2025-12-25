@@ -3,16 +3,20 @@ package org.thereminderbot.components;
 import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.components.service.ServiceComponent;
 import org.thereminderbot.domain.Remind;
+import org.thereminderbot.components.service.NotificationService;
+import org.thereminderbot.components.service.NotificationBuffer;
+import org.thereminderbot.domain.User;
+import org.thereminderbot.enums.UserMenu;
 
 import java.io.PrintStream;
 import java.util.*;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.Duration;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.thereminderbot.domain.User;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
@@ -20,14 +24,37 @@ public class App {
 
     private final Scanner scanner = new Scanner(System.in);
     private final PrintStream userOut = System.out;
+    private final NotificationService notificationService;
 
     /**
      * Конструктор по умолчанию.
      */
     public App() {
         repositoryComponent = new RepositoryComponent();
-        serviceComponent = new ServiceComponent();
+        serviceComponent = new ServiceComponent(repositoryComponent);
+
+        notificationService = new NotificationService(
+                repositoryComponent.getRemindRepository()
+        );
+
+        notificationService.start();
+
+        startNotificationListener();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            notificationListenerExecutor.shutdownNow();
+            notificationService.stop();
+        }, "shutdown-hook"));
     }
+
+    private static final Logger log = LoggerFactory.getLogger(App.class);
+
+    private final ExecutorService notificationListenerExecutor =
+            Executors.newSingleThreadExecutor(r -> {
+                Thread t = new Thread(r, "notification-listener");
+                t.setDaemon(true);
+                return t;
+            });
 
     /**
      * Запустить консольного бота.
@@ -160,7 +187,7 @@ public class App {
             }
 
             long id = nextUserId++;
-            int defaultMenu = 0;
+            UserMenu defaultMenu = UserMenu.MainPage;
             User user = new User(id, name, zone, defaultMenu);
 
             repositoryComponent.getUserRepository().addUser(user);
@@ -479,19 +506,19 @@ public class App {
         }
     }
 
-        private String getMethodHelp (String method) {
-            String prefix = "Использование команды: ";
-            return prefix + switch (method) {
-                case "/delete_user" -> "/delete_user [userId] - Id пользователя";
-                case "/delete_remind" -> "/delete_remind [remindId] - Id напоминания";
-                case "/get_user_info" -> "/get_user_info [userId] - Id пользователя";
-                case "/get_remind_info" -> "/get_remind_info [remindId] - Id напоминания";
-                case "/list_users_reminds" -> "/list_users_reminds [userId] - Id пользователя";
-                case "/change_remind_text" -> "/change_remind_text [remindId] - Id напоминания";
-                case "/change_username" -> "/change_username [userId] - Id пользователя";
-                default -> "Нет справки для данного метода.";
-            };
-        }
+    private String getMethodHelp (String method) {
+        String prefix = "Использование команды: ";
+        return prefix + switch (method) {
+            case "/delete_user" -> "/delete_user [userId] - Id пользователя";
+            case "/delete_remind" -> "/delete_remind [remindId] - Id напоминания";
+            case "/get_user_info" -> "/get_user_info [userId] - Id пользователя";
+            case "/get_remind_info" -> "/get_remind_info [remindId] - Id напоминания";
+            case "/list_users_reminds" -> "/list_users_reminds [userId] - Id пользователя";
+            case "/change_remind_text" -> "/change_remind_text [remindId] - Id напоминания";
+            case "/change_username" -> "/change_username [userId] - Id пользователя";
+            default -> "Нет справки для данного метода.";
+        };
+    }
 
     static public class ParsingHelper {
         static boolean isId(String input) {
@@ -515,5 +542,29 @@ public class App {
             }
             return Long.parseLong(idStr);
         }
+    }
+    private void handleNotification(Remind remind) {
+        userOut.println(
+                String.format(
+                        "Напоминание для пользователя %d: %s",
+                        remind.getUserId(),
+                        remind.getText()
+                )
+        );
+    }
+    private void startNotificationListener() {
+        notificationListenerExecutor.submit(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Remind remind = NotificationBuffer.take(); // <-- статик
+                    handleNotification(remind);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                } catch (Exception e) {
+                    log.error("Notification listener error", e);
+                }
+            }
+        });
     }
 }

@@ -44,4 +44,8 @@ public class UserRepository {
         }
         users.remove(user);
     }
+
+    public long getNextId() {
+        return users.size();
+    }
 }

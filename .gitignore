@@ -5,6 +5,8 @@ target/
 !**/src/test/**/target/
 .kotlin
 **.html
+/thereminderbot/.env
+.idea
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
