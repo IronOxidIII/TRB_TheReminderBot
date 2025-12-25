@@ -41,8 +41,5 @@ public enum UserMenu {
     RemindCreateFrequency,
     RemindEditText,
     UserEnterText,
-    /**
-     * Поиск заметки.
-     */
-    RemindSearch
+    RemindMenu
 }

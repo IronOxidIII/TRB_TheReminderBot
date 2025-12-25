@@ -1,58 +1,87 @@
 package org.thereminderbot.components;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.thereminderbot.components.repository.RepositoryComponent;
 import org.thereminderbot.components.service.ServiceComponent;
+import org.thereminderbot.constants.BotConstants;
 import org.thereminderbot.constants.BotLanguage;
 import org.thereminderbot.domain.Remind;
 import org.thereminderbot.domain.User;
+import org.thereminderbot.domain.UserSession;
 import org.thereminderbot.enums.UserMenu;
 import org.thereminderbot.helpers.ConfigHelper;
+import org.thereminderbot.helpers.ParsingHelper;
 
+import javax.security.auth.callback.Callback;
 import java.text.ParseException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TheReminderBot extends TelegramLongPollingBot {
     private final RepositoryComponent repositoryComponent = new RepositoryComponent();;
-    private final ServiceComponent serviceComponent = new ServiceComponent();
+    private final ServiceComponent serviceComponent = new ServiceComponent(repositoryComponent);
+
+    Logger log = LoggerFactory.getLogger(TheReminderBot.class);
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (!update.hasMessage() || !update.getMessage().hasText()) {
-            return;
+        CallbackQuery callbackQuery = update.getCallbackQuery();
+        Long chatId;
+        if (callbackQuery != null) {
+            chatId = callbackQuery.getMessage().getChatId();
+        }
+        else {
+            chatId = update.getMessage().getChatId();
         }
 
-        Long chatId = update.getMessage().getChatId();
-        String text = update.getMessage().hasText() ? update.getMessage().getText() : null;
-        if (text == null)
-        {
-            return;
-        }
-
-        User user;
+        UserSession userSession;
         try {
-            user = repositoryComponent.getUserRepository().getUserBySession(chatId);
+            userSession = repositoryComponent
+                    .getUserSessionRepository()
+                    .getUserSession(chatId);
         }
         catch (Exception e) {
             long newUserId = repositoryComponent.getUserRepository().getNextId();
-            user = new User(newUserId, "Test", ZoneId.systemDefault(), UserMenu.MainPage);
+            User user = new User(newUserId, "Test", ZoneId.systemDefault(), UserMenu.MainPage);
             repositoryComponent.getUserRepository().addUser(user);
+
+            userSession = new UserSession(user, chatId);
+            repositoryComponent.getUserSessionRepository().addUserSession(chatId, userSession);
+        }
+
+        if (update.hasCallbackQuery()) {
+            handleState(update.getCallbackQuery().getData(), userSession);
+            return;
         }
 
         // Если есть активное состояние - обработать его
-        if (user.getCurrentMenu() != UserMenu.MainPage) {
-            handleState(text, user);
+        if (userSession.getUser().getCurrentMenu() != UserMenu.MainPage) {
+            if (update.hasMessage() && update.getMessage().isCommand()) {
+                userSession.clear();
+                userSession.getUser().setCurrentMenu(UserMenu.MainPage);
+                handleCommand(update.getMessage().getText(), userSession);
+                return;
+            }
+            handleState(update.getMessage().getText(), userSession);
             return;
         }
         // Иначе обработать как команду
-        handleCommand(text, user);
+        handleCommand(update.getMessage().getText(), userSession);
     }
 
     @Override
@@ -68,124 +97,197 @@ public class TheReminderBot extends TelegramLongPollingBot {
     /**
      * Обработать ввод пользователя, если тот находится не в главном меню.
      * @param text - Сообщение пользователя.
-     * @param user - Пользователь.
+     * @param session - Сессия пользователя.
      */
-    private void handleState(String text, User user) {
-        switch(user.getCurrentMenu()) {
+    private void handleState(String text, UserSession session) {
+        switch(session.getUser().getCurrentMenu()) {
             case RemindCreateText:
-                setRemindText(text, user);
+                setRemindText(text, session);
                 break;
             case RemindCreateTime:
-                setRemindTime(text, user);
+                setRemindTime(text, session);
                 break;
             case RemindCreateFrequency:
-                setRemindFrequency(text, user);
+                setRemindFrequency(text, session);
                 break;
             case RemindsList:
-                listReminds(user);
+                handleRemindListButtonClick(text, session);
                 break;
             case RemindEditText:
-                editTextRemind(text, user);
+                editTextRemind(text, session);
+                break;
+            case RemindMenu:
+                handleRemindMenu(text, session);
                 break;
             default:
-                sendMessage(user.getChatId(), "Что-то пошло не так. Попробуйте снова.");
+                sendMessage(session.getChatId(), "Что-то пошло не так. Попробуйте снова.");
         }
     }
 
+    private void handleRemindMenu(String text, UserSession session) {
+        switch(text) {
+            case "ChangeRemindText":
+                session.getUser().setCurrentMenu(UserMenu.RemindEditText);
+                sendMessage(session.getChatId(), "Введите новый текст напоминания.");
+                break;
+            case "DeleteRemind":
+                session.getUser().setCurrentMenu(UserMenu.RemindDelete);
+                deleteRemind(session);
+        }
+    }
+
+    private void handleRemindListButtonClick(String text, UserSession session) {
+        switch (text) {
+            case "0":
+            case "1":
+            case "2":
+            case "3":
+            case "4":
+            case "5":
+                session.getUser().setCurrentMenu(UserMenu.RemindMenu);;
+                sendRemindMenu(getRemindId(Integer.parseInt(text), session), session);
+                break;
+            case "<-":
+                try {
+                    session.decRemindPage();
+                } catch (Exception e) { }
+                listReminds(session);
+                break;
+            case "->":
+                session.incRemindPage();
+                listReminds(session);
+                break;
+            default:
+                sendMessage(session.getChatId(), BotLanguage.InvalidOperation);
+                break;
+
+        }
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<InlineKeyboardButton> buttons = new ArrayList<>();
+        InlineKeyboardButton editRemind = new InlineKeyboardButton();
+        editRemind.setText("Изменить текст напоминания.");
+        editRemind.setCallbackData("");
+    }
+
+    private void sendRemindMenu(long remindId, UserSession session) {
+        var remind = repositoryComponent.getRemindRepository().getRemindById(remindId);
+
+        if (remind == null) {
+            sendMessage(session.getChatId(), "Не найдено такое напоминание).");
+            return;
+        }
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> buttonRows = new ArrayList<>();
+
+        InlineKeyboardButton editText = new InlineKeyboardButton();
+        editText.setText("Изменить текст");
+        editText.setCallbackData("ChangeRemindText");
+
+        InlineKeyboardButton deleteRemind = new InlineKeyboardButton();
+        deleteRemind.setText("Удалить напоминание");
+        deleteRemind.setCallbackData("DeleteRemind");
+
+        buttonRows.add(List.of(editText));
+        buttonRows.add(List.of(deleteRemind));
+
+        inlineKeyboardMarkup.setKeyboard(buttonRows);
+        sendMessage(session.getChatId(), inlineKeyboardMarkup);
+    }
+
+    private long getRemindId(int remindIndexOnPage, UserSession session) {
+        int remindPageIndex = session.getRemindPage();
+        var userReminds = repositoryComponent
+                .getRemindRepository()
+                .getRemindsByUser(session.getUser().getUserId());
+
+        return userReminds.get(remindPageIndex * BotConstants.RemindsPerPage + remindIndexOnPage - 1).getId();
+    }
 
     /**
      * Обработать команду, введенную пользователем.
      * @param command - Команда.
      */
-    private void handleCommand(String command, User user) {
+    private void handleCommand(String command, UserSession session) {
         String[] inputArr = command.split(" ");
 
         switch (inputArr[0]) {
             case "/add_remind":
-                addRemind(user);
-                break;
-            case "/delete_remind":
-                if (inputArr.length <= 1) {
-                    sendMessage(user.getChatId(), getMethodHelp(inputArr[0]));
-                    break;
-                }
-                deleteRemind(inputArr[1], user);
-                break;
-            case "/get_remind_info":
-                if (inputArr.length <= 1) {
-                    sendMessage(user.getChatId(), getMethodHelp(inputArr[0]));
-                    break;
-                }
-                getRemindInfo(inputArr[1], user);
+                addRemind(session);
                 break;
             case "/help":
-                sendHelp(user.getChatId());
+                sendHelp(session.getChatId());
                 break;
             case "/list_all_reminds":
-                listReminds(user);
-                break;
-            case "/change_remind_text":
-                if (inputArr.length <= 1) {
-                    sendMessage(user.getChatId(), getMethodHelp(inputArr[0]));
-                    break;
-                }
-                searchRemind(inputArr[1], user, UserMenu.RemindEditText);
+                session.getUser().setCurrentMenu(UserMenu.RemindsList);
+                listReminds(session);
                 break;
             case "/start":
-                sendWelcomeMessage(user.getChatId());
+                sendWelcomeMessage(session.getChatId());
             default:
-                sendInvalidOperationMessage(user.getChatId());
+                sendInvalidOperationMessage(session.getChatId());
                 break;
         }
     }
 
-    private void addRemind(User user) {
-        user.setCurrentMenu(UserMenu.RemindCreateText);
-        sendMessage(user.getChatId(), BotLanguage.EnterRemindText);
+    private void addRemind(UserSession session) {
+        session.getUser().setCurrentMenu(UserMenu.RemindCreateText);
+        sendMessage(session.getChatId(), BotLanguage.EnterRemindText);
     }
 
-    private void setRemindText(String text, User user) {
+    private void setRemindText(String text, UserSession session) {
         if (text == null || text.isEmpty()) {
-            sendMessage(user.getChatId(), BotLanguage.InvalidRemindText);
+            sendMessage(session.getChatId(), BotLanguage.InvalidRemindText);
         }
 
-        user.remindConstructor.text = text;
-        user.setCurrentMenu(UserMenu.RemindCreateTime);
-        sendMessage(user.getChatId(), BotLanguage.EnterRemindTime);
+        session.setText(text);
+        session.getUser().setCurrentMenu(UserMenu.RemindCreateTime);
+        sendMessage(session.getChatId(), BotLanguage.EnterRemindTime);
     }
 
-    private void setRemindTime(String text, User user) {
-        OffsetDateTime dateTime;
-        try
-        {
-            dateTime = ParsingHelper.parseDateTime(text);
-        } catch (DateTimeParseException e) {
-            sendMessage(user.getChatId(), BotLanguage.InvalidRemindTime);
+    private void setRemindTime(String text, UserSession session) {
+        OffsetDateTime offsetDateTime;
+        try {
+            var localDT = java.time.LocalDateTime.parse(
+                    text,
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+            );
+
+            offsetDateTime = localDT.atZone(session.getUser().getTimeZoneOffset()).toOffsetDateTime();
+        } catch (Exception e) {
+            sendMessage(session.getChatId(), BotLanguage.InvalidRemindTime);
+            log.warn(e.getMessage());
             return;
         }
 
-        user.remindConstructor.time = dateTime;
-        user.setCurrentMenu(UserMenu.RemindCreateFrequency);
-        sendMessage(user.getChatId(), BotLanguage.EnterRemindFrequency);
+        session.setTime(offsetDateTime);
+        session.getUser().setCurrentMenu(UserMenu.RemindCreateFrequency);
+        sendMessage(session.getChatId(), BotLanguage.EnterRemindFrequency);
     }
 
-    private void setRemindFrequency(String text, User user) {
+    private void setRemindFrequency(String text, UserSession session) {
         Duration frequency;
         try {
             frequency = ParsingHelper.parseDuration(text);
         }
-        catch (ParseException e) {
-            sendMessage(user.getChatId(), BotLanguage.InvalidRemindFrequency);
+        catch (Exception e) {
+            sendMessage(session.getChatId(), BotLanguage.InvalidRemindFrequency + e.getMessage());
             return;
         }
 
-        user.remindConstructor.frequencyOfRepetition = frequency;
+        session.setFrequencyOfRepetition(frequency);
 
-        long newRemindId = repositoryComponent.getRemindRepository().getAll().size() + 1;
+        addConstructedRemind(session);
+    }
+
+    private void addConstructedRemind(UserSession session) {
+        long newRemindId = repositoryComponent.getRemindRepository().getAll().size();
         repositoryComponent.getRemindRepository().addRemind(
-                user.remindConstructor.Construct(newRemindId));
+                session.CreateRemind(newRemindId, session.getUser().getUserId()));
 
-        user.setCurrentMenu(UserMenu.MainPage);
+        session.getUser().setCurrentMenu(UserMenu.MainPage);
+        sendMessage(session.getChatId(), BotLanguage.RemindAdded);
     }
 
     private void sendInvalidOperationMessage(Long chatId) {
@@ -202,7 +304,19 @@ public class TheReminderBot extends TelegramLongPollingBot {
         message.setChatId(chatId);
         message.setText(text);
         try {
-            execute(new SendMessage(chatId.toString(), text));
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendMessage(Long chatId, InlineKeyboardMarkup inlineKeyboardMarkup) {
+        SendMessage message = new SendMessage();
+        message.setText("Выберите кнопку:");
+        message.setChatId(chatId);
+        message.setReplyMarkup(inlineKeyboardMarkup);
+        try {
+            execute(message);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
@@ -212,29 +326,73 @@ public class TheReminderBot extends TelegramLongPollingBot {
         sendMessage(chatId, BotLanguage.Help);
     }
 
-    private void listReminds(User user) {
-        var reminds = repositoryComponent.getRemindRepository().getAll();
+    private void listReminds(UserSession session) {
+        var reminds = repositoryComponent.getRemindRepository().getRemindsByUser(session.getUser().getUserId());
 
         if (reminds.isEmpty()) {
-            sendMessage(user.getChatId(), "Нет ни одного напоминания.");
+            sendMessage(session.getChatId(), "Нет ни одного напоминания.");
             return;
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("Список всех напоминаний:");
-        for (var remind : reminds) {
-            if (remind.getUserId() == user.getUserId()) {
-                sb.append(remind.toString());
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> buttonRows = new ArrayList<>();
+        for (int i = BotConstants.RemindsPerPage * session.getRemindPage(); i < reminds.size(); i++) {
+            InlineKeyboardButton remindButton = new InlineKeyboardButton();
+            remindButton.setText(reminds.get(i).getText());
+            remindButton.setCallbackData(Integer.toString(i % BotConstants.RemindsPerPage));
+
+            buttonRows.add(List.of(remindButton));
+
+            if (i > 0 && (i + 1) % BotConstants.RemindsPerPage == 0) {
+                break;
             }
         }
 
-        sendMessage(user.getChatId(), sb.toString());
+        List<InlineKeyboardButton> pageSelector = getPageSelectorButtons(session, reminds.size());
+        if (!pageSelector.isEmpty()) {
+            buttonRows.add(pageSelector);
+        }
+
+        if (buttonRows.isEmpty()) {
+            session.decRemindPage();
+            listReminds(session);
+            return;
+        }
+
+        inlineKeyboardMarkup.setKeyboard(buttonRows);
+        sendMessage(session.getChatId(), inlineKeyboardMarkup);
     }
 
-    private void getRemindInfo(String remindId, User user) {
+    private List<InlineKeyboardButton> getPageSelectorButtons(UserSession session, int remindsCount) {
+        List<InlineKeyboardButton> pageSelector = new ArrayList<>();
+
+        InlineKeyboardButton prevButton = null;
+        InlineKeyboardButton nextButton = null;
+        if (remindsCount > (session.getRemindPage() + 1) * BotConstants.RemindsPerPage) {
+            nextButton = new InlineKeyboardButton();
+            nextButton.setText("->");
+            nextButton.setCallbackData("->");
+        }
+
+        if (session.getRemindPage() > 0) {
+            prevButton = new InlineKeyboardButton();
+            prevButton.setText("<-");
+            prevButton.setCallbackData("<-");
+        }
+
+        if (prevButton != null) {
+            pageSelector.add(prevButton);
+        }
+        if (nextButton != null) {
+            pageSelector.add(nextButton);
+        }
+        return pageSelector;
+    }
+
+    private void getRemindInfo(String remindId, UserSession session) {
         long lRemindId = ParsingHelper.parseLong(remindId);
         if (lRemindId == -1) {
-            sendMessage(user.getChatId(), String.format("Некорректный ID напоминания: %s", remindId));
+            sendMessage(session.getChatId(), String.format("Некорректный ID напоминания: %s", remindId));
             return;
         }
 
@@ -242,7 +400,7 @@ public class TheReminderBot extends TelegramLongPollingBot {
             Remind remind = repositoryComponent.getRemindRepository().getRemindById(lRemindId);
 
             if (remind == null) {
-                sendMessage(user.getChatId(), String.format("Напоминание с ID %d не найдено.", remindId));
+                sendMessage(session.getChatId(), String.format("Напоминание с ID %d не найдено.", remindId));
                 return;
             }
 
@@ -251,50 +409,29 @@ public class TheReminderBot extends TelegramLongPollingBot {
             sb.append(remind.toString());
 
         } catch (Exception e) {
-            sendMessage(user.getChatId(), "Не удалось получить напоминание. Попробуйте позже.");
+            sendMessage(session.getChatId(), "Не удалось получить напоминание. Попробуйте позже.");
         }
     }
 
-    private void editTextRemind(String text, User user) {
+    private void editTextRemind(String text, UserSession session) {
         try {
-            serviceComponent.getRemindService().changeRemindText(user.remindConstructor.id, text);
-            sendMessage(user.getChatId(), "Текст напоминания обновлён.");
+            serviceComponent.getRemindService().changeRemindText(session.getRemindId(), text);
+            sendMessage(session.getChatId(), "Текст напоминания обновлён.");
         } catch (Exception e) {
-            sendMessage(user.getChatId(), "Не удалось изменить текст напоминания. Попробуйте позже.");
+            sendMessage(session.getChatId(), "Не удалось изменить текст напоминания. Попробуйте позже.");
         }
     }
-    private void deleteRemind(String remindId, User user) {
-        Long lRemindId;
-        try {
-            lRemindId = ParsingHelper.parseLong(remindId);
-        } catch (Exception e) {
-            sendMessage(user.getChatId(), BotLanguage.InvalidId);
-            return;
-        }
+    private void deleteRemind(UserSession session) {
+        Long remindId = session.getRemindId();
 
         try {
-            serviceComponent.getRemindService().deleteRemind(lRemindId);
+            serviceComponent.getRemindService().deleteRemind(remindId);
         } catch (IllegalArgumentException e) {
-            sendMessage(user.getChatId(), e.getMessage());
+            sendMessage(session.getChatId(), e.getMessage());
             return;
         }
 
-        sendMessage(user.getChatId(), BotLanguage.RemindDeleted);
-    }
-    private void searchRemind(String id, User user, UserMenu nextMenu) {
-        long remindId;
-        try {
-            remindId = ParsingHelper.parseLong(id);
-        } catch (Exception e) {
-            sendMessage(user.getChatId(), BotLanguage.InvalidId);
-            return;
-        }
-
-        if (nextMenu == UserMenu.RemindEditText) {
-            user.setCurrentMenu(nextMenu);
-            sendMessage(user.getChatId(), String.format("Введите новый текст напоминания %s.", id));
-            user.remindConstructor.id = remindId;
-        }
+        sendMessage(session.getChatId(), BotLanguage.RemindDeleted);
     }
     
     private void sendWelcomeMessage(long chatId) {
@@ -314,62 +451,5 @@ public class TheReminderBot extends TelegramLongPollingBot {
             case "/change_username" -> "/change_username [userId] - Id пользователя";
             default -> "Нет справки для данного метода.";
         };
-    }
-
-    static public class ParsingHelper {
-        static boolean isId(String input) {
-            if (input == null || input.isEmpty()) {
-                throw new IllegalArgumentException("Строка не может быть пустой.");
-            }
-
-            try {
-                Long.parseLong(input);
-            }
-            catch (NumberFormatException e) {
-                return false;
-            }
-
-            return true;
-        }
-
-        static OffsetDateTime parseDateTime(String input) {
-            if (input == null || input.isEmpty()) {
-                throw new IllegalArgumentException("Стока не может быть пустой.");
-            }
-
-            try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-                return OffsetDateTime.parse(input, formatter);
-            } catch (Exception e) {
-                throw new DateTimeParseException("Не удалось распарсить время.", input, 0);
-            }
-        }
-
-        static Duration parseDuration(String input)
-        throws ParseException {
-            if (input == null || input.isEmpty()) {
-                throw new IllegalArgumentException("Стока не может быть пустой.");
-            }
-
-            try {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH");
-                return Duration.ofHours(Integer.parseInt(input));
-            }
-            catch (NumberFormatException e) {
-                throw new ParseException("Не получилось распарсить число.", 1);
-            }
-        }
-
-        static Long parseLong(String input) {
-            if (input == null || input.isEmpty()) {
-                throw new IllegalArgumentException("Строка не может быть пустой.");
-            }
-
-            try {
-                return Long.parseLong(input);
-            } catch (Exception e) {
-                throw new NumberFormatException("Не удалось распарсить input в long.");
-            }
-        }
     }
 }

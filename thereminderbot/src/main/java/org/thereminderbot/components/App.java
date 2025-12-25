@@ -13,6 +13,7 @@ import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thereminderbot.domain.User;
+import org.thereminderbot.enums.UserMenu;
 
 public class App {
     private final RepositoryComponent repositoryComponent;
@@ -26,7 +27,7 @@ public class App {
      */
     public App() {
         repositoryComponent = new RepositoryComponent();
-        serviceComponent = new ServiceComponent();
+        serviceComponent = new ServiceComponent(repositoryComponent);
     }
 
     /**
@@ -160,7 +161,7 @@ public class App {
             }
 
             long id = nextUserId++;
-            int defaultMenu = 0;
+            UserMenu defaultMenu = UserMenu.MainPage;
             User user = new User(id, name, zone, defaultMenu);
 
             repositoryComponent.getUserRepository().addUser(user);

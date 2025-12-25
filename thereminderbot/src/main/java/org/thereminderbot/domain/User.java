@@ -2,6 +2,8 @@ package org.thereminderbot.domain;
 
 import org.thereminderbot.enums.UserMenu;
 
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 
 /**
@@ -29,10 +31,7 @@ public class User {
      */
     private UserMenu currentMenu;
 
-    /**
-     * Меню по умолчанию.
-     */
-    private static UserMenu defaultMenu = UserMenu.MainPage;
+    public static UserMenu defaultMenu = UserMenu.MainPage;
 
     public User(long userId, String userName, ZoneId timeZoneOffset, UserMenu currentMenu) {
         this.userId = userId;
@@ -103,13 +102,5 @@ public class User {
      */
     public void setCurrentMenu(UserMenu menu) {
         this.currentMenu = menu;
-    }
-
-    /**
-     * Получить сессию пользователя.
-     * @return long - сессия пользователя.
-     */
-    public void setCurrentMenuId(int menuId) {
-        this.currentMenuId = menuId;
     }
 }
